@@ -16,7 +16,7 @@ needles=(
 for target in "${targets[@]}"; do
   [[ -e "$target" ]] || continue
   for needle in "${needles[@]}"; do
-    if rg -F "$needle" "$target" >/dev/null; then
+    if grep -R -F -q -- "$needle" "$target"; then
       echo "FAIL: raw sensitive value found in runtime artifact target=$target value=$needle" >&2
       exit 1
     fi

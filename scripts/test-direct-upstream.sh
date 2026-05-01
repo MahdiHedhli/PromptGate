@@ -37,10 +37,10 @@ curl -fsS "http://127.0.0.1:${gateway_port}/v1/chat/completions" \
   -H "Authorization: Bearer ${PROMPTGATE_AUTH_TOKEN:-local_promptgate_key}" \
   -H "Content-Type: application/json" \
   -d '{"model":"mock","messages":[{"role":"user","content":"Email alice@example.com from 10.1.2.3 about Project Raven."}]}' >/dev/null
-if rg -F -e 'alice@example.com' -e '10.1.2.3' -e 'Project Raven' -e 'fake-upstream-key' "$capture" >/dev/null; then
+if grep -F -q -e 'alice@example.com' -e '10.1.2.3' -e 'Project Raven' -e 'fake-upstream-key' "$capture"; then
   echo "FAIL: raw sensitive value or API key reached fake upstream capture" >&2
   cat "$capture" >&2
   exit 1
 fi
-rg -F '[PRIVATE_EMAIL_001]' "$capture" >/dev/null
+grep -F -q '[PRIVATE_EMAIL_001]' "$capture"
 echo "PASS: direct upstream route received rewritten payload only"

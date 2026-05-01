@@ -52,11 +52,11 @@ blocked_status="$(curl -sS -o /tmp/promptgate-mitm-blocked.json -w "%{http_code}
 test "$blocked_status" = "400"
 sleep 1
 test -s "$capture_jsonl"
-if rg -F -e 'alice@example.com' -e '10.1.2.3' -e 'Project Raven' -e 'sk-test-abc1234567890SECRET' -e 'fake-mitm-key' "$capture_jsonl" >/dev/null; then
+if grep -F -q -e 'alice@example.com' -e '10.1.2.3' -e 'Project Raven' -e 'sk-test-abc1234567890SECRET' -e 'fake-mitm-key' "$capture_jsonl"; then
   echo "FAIL: raw sensitive value or fake key appeared in MITM capture" >&2
   exit 1
 fi
-rg -F '[PRIVATE_EMAIL_001]' "$capture_jsonl" >/dev/null
-rg -F '[IP_ADDRESS_001]' "$capture_jsonl" >/dev/null
-rg -F '[CODENAME_001]' "$capture_jsonl" >/dev/null
+grep -F -q '[PRIVATE_EMAIL_001]' "$capture_jsonl"
+grep -F -q '[IP_ADDRESS_001]' "$capture_jsonl"
+grep -F -q '[CODENAME_001]' "$capture_jsonl"
 echo "PASS: MITM fake-upstream capture contains rewritten placeholders and no raw synthetic values"
