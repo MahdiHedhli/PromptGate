@@ -26,19 +26,23 @@ actions:
   ip_address: tokenize
   file_path: mask
   obfuscated_text: block
+  client_codename: tokenize
+  internal_ticket: tokenize
 allowlist: []
 rules:
-  - id: client_codename
-    type: keyword
-    values: ["Project Raven", "Client Orion"]
-    category: client_codename
-    action: tokenize
-    token_prefix: CODENAME
-    severity: high
-  - id: internal_ticket
-    type: regex
-    pattern: "\\b[A-Z]{2,10}-SEC-[0-9]{3,8}\\b"
-    category: internal_ticket
-    action: tokenize
-    token_prefix: TICKET
-    severity: medium
+- id: client_codename
+  type: keyword
+  values:
+  - Project Raven
+  - Client Orion
+  category: client_codename
+  action: tokenize
+  token_prefix: CODENAME
+  severity: high
+- id: internal_ticket
+  type: regex
+  pattern: \b[A-Z]{2,10}-SEC-[0-9]{3,8}\b
+  category: internal_ticket
+  action: tokenize
+  token_prefix: TICKET
+  severity: medium
