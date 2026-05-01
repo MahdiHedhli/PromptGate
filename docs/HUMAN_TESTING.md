@@ -75,7 +75,19 @@ Expected result: mitmproxy capture under `local/runtime/mitm/` contains placehol
 
 ## 8. Streaming Behavior
 
+Recommended:
+
 ```bash
+./scripts/test-streaming-rejection.sh
+```
+
+Manual equivalent:
+
+```bash
+set -a
+source .env
+set +a
+
 curl -s http://127.0.0.1:8787/v1/chat/completions \
   -H "Authorization: Bearer $PROMPTGATE_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
