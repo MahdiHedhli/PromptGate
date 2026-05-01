@@ -2,7 +2,7 @@
 set -euo pipefail
 py="${PYTHON:-}"
 if [[ -z "$py" && -x ".venv/bin/python" ]]; then py=".venv/bin/python"; fi
-if [[ -z "$py" ]]; then py="$(command -v python3.12 || command -v python3)"; fi
+if [[ -z "$py" ]]; then py="$(command -v python3.12 || command -v python3.11 || command -v python3)"; fi
 "$py" - <<'PY'
 import json
 from datetime import datetime, timezone

@@ -26,6 +26,17 @@ def test_valid_auth_is_accepted(monkeypatch):
     assert response.status_code == 200
 
 
+def test_unsafe_dev_mode_must_be_explicit(monkeypatch):
+    monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "")
+    monkeypatch.setenv("PROMPTGATE_UNSAFE_DEV_NO_AUTH", "false")
+    denied = TestClient(app).post("/v1/chat/completions", json={"messages": [{"content": "hello"}]})
+    assert denied.status_code == 503
+
+    monkeypatch.setenv("PROMPTGATE_UNSAFE_DEV_NO_AUTH", "true")
+    allowed = TestClient(app).post("/v1/chat/completions", json={"messages": [{"content": "hello"}]})
+    assert allowed.status_code == 200
+
+
 def test_status_does_not_expose_secrets(monkeypatch):
     monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
     monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
@@ -39,17 +50,21 @@ def test_status_does_not_expose_secrets(monkeypatch):
 def test_upstream_forwarding_uses_rewritten_payload_and_hides_api_key(monkeypatch, caplog):
     captured = {}
 
-    async def local_fake_upstream(endpoint, payload, base_url, api_key):
+    async def local_fake_upstream(endpoint, payload, base_url, api_key, http_proxy="", ca_bundle=""):
         captured["path"] = endpoint
         captured["auth"] = f"Bearer {api_key}"
         captured["payload"] = payload
         captured["base_url"] = base_url
+        captured["http_proxy"] = http_proxy
+        captured["ca_bundle"] = ca_bundle
         return {"ok": True, "choices": []}
 
     monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
     monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "upstream")
     monkeypatch.setenv("PROMPTGATE_UPSTREAM_BASE_URL", "http://127.0.0.1:9999")
     monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_HTTP_PROXY", "http://127.0.0.1:8080")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_CA_BUNDLE", "/tmp/fake-ca.pem")
     monkeypatch.setattr("promptgate.server.forward", local_fake_upstream)
     caplog.set_level("INFO", logger="promptgate")
 
@@ -66,6 +81,9 @@ def test_upstream_forwarding_uses_rewritten_payload_and_hides_api_key(monkeypatc
     assert "PRIVATE_EMAIL" in body
     assert captured["auth"] == "Bearer upstream-secret"
     assert captured["path"] == "/v1/chat/completions"
+    assert captured["http_proxy"] == "http://127.0.0.1:8080"
+    assert captured["ca_bundle"] == "/tmp/fake-ca.pem"
     assert "upstream-secret" not in caplog.text
+    assert "http://127.0.0.1:8080" not in caplog.text
 
     monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")

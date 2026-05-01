@@ -88,7 +88,9 @@ def _doctor() -> int:
         checks.append(("provider", "ok", "mock provider mode"))
     elif settings.provider_mode == "upstream":
         if settings.upstream_base_url and settings.upstream_api_key:
-            checks.append(("provider", "ok", f"upstream configured base_url={settings.upstream_base_url} api_key=[redacted]"))
+            proxy = " proxy_configured=true" if settings.upstream_http_proxy else ""
+            ca_bundle = " ca_bundle_configured=true" if settings.upstream_ca_bundle else ""
+            checks.append(("provider", "ok", f"upstream configured base_url={settings.upstream_base_url} api_key=[redacted]{proxy}{ca_bundle}"))
         else:
             ok = False
             checks.append(("provider", "fail", "upstream mode requires base URL and API key"))

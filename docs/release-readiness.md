@@ -10,6 +10,8 @@
 | Direct upstream routing | Green | `./scripts/test-direct-upstream.sh` | docs/reports/generated/fake-upstream-capture.json | Real provider credentials optional |
 | LiteLLM route shape | Green | `./scripts/test-litellm-route.sh` | fake upstream capture | Production LiteLLM deployment not claimed |
 | Streaming behavior | Green | pytest streaming rejection test | tests/test_gateway_egress.py | Decide when to add streaming support |
+| MITM fake-upstream verification | Green | `./scripts/test-mitm-fake-upstream.sh` | local/runtime/mitm/ ignored captures | Owner can run visual MITM next |
+| Real-provider MITM | Yellow | docs/MITM_VERIFICATION.md | owner local mitmproxy | Requires owner credentials |
 | Benchmarks | Green | `./scripts/benchmark-local.py` | docs/reports/benchmarks/latest.md | Treat as synthetic local evidence |
 | Report export | Green | `./scripts/export-report.sh` | docs/reports/generated/promptgate-report.md | Review before blog use |
 | Leak assertions | Green | `./scripts/assert-no-raw-leaks.sh` | runtime reports | Expand needles for new fixtures |

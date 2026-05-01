@@ -10,9 +10,10 @@ PromptGate is a clone-and-run proof of concept gateway that sits between API/CLI
 cp .env.example .env
 ./scripts/setup-local-key.sh
 ./scripts/init-policy.sh security_consulting
-python3.12 -m pip install -e ".[dev]"
+python3.12 -m venv .venv || python3.11 -m venv .venv
+.venv/bin/python -m pip install -e ".[dev]"
 set -a; source .env; set +a
-python3.12 -m uvicorn promptgate.server:app --host 127.0.0.1 --port 8787
+.venv/bin/python -m uvicorn promptgate.server:app --host 127.0.0.1 --port 8787
 ./scripts/test-egress.sh
 ```
 

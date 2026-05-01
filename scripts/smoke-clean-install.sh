@@ -16,7 +16,7 @@ rsync -a \
   --exclude='docs/reports/benchmarks' \
   "$src/" "$tmp/PromptGate/"
 cd "$tmp/PromptGate"
-py="$(command -v python3.12 || command -v python3)"
+py="$(command -v python3.12 || command -v python3.11 || command -v python3)"
 "$py" -m venv .venv
 .venv/bin/python -m pip install -e '.[dev]' >/tmp/promptgate-smoke-pip.log
 cp .env.example .env

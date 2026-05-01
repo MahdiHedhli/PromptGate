@@ -74,7 +74,9 @@ def _collapse_email_separators(mapped: MappedText) -> MappedText:
         if char in {" ", "\t", "\n", "-", "_"}:
             prev_char = _previous_non_space(text, index)
             next_char = _next_non_space(text, index)
-            if prev_char and next_char and (prev_char.isalnum() or prev_char in ".@") and (next_char.isalnum() or next_char in ".@"):
+            if prev_char and next_char and (prev_char in ".@" or next_char in ".@"):
+                continue
+            if char in {"-", "_"} and prev_char and next_char and prev_char.isalnum() and next_char.isalnum():
                 continue
         chars.append(char)
         spans.append(mapped.spans[index])

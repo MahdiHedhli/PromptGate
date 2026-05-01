@@ -46,3 +46,12 @@ PROMPTGATE_UPSTREAM_API_KEY=<key>
 ```
 
 Real provider tests require owner-supplied credentials.
+
+Optional MITM/proxy settings:
+
+```bash
+PROMPTGATE_UPSTREAM_HTTP_PROXY=http://127.0.0.1:8080
+PROMPTGATE_UPSTREAM_CA_BUNDLE=<path to mitmproxy CA bundle>
+```
+
+These settings are disabled by default and are intended for owner-controlled verification or controlled network environments.

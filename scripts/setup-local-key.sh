@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 env_file="${1:-.env}"
-py_for_key="$(command -v python3.12 || command -v python3)"
+py_for_key="$(command -v python3.12 || command -v python3.11 || command -v python3)"
 key="$("$py_for_key" - <<'PY'
 import secrets
 import string

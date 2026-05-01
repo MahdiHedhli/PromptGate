@@ -76,3 +76,9 @@ def test_invalid_privacy_filter_config(tmp_path):
     path = _write_policy(tmp_path, {"detectors": {"regex": True, "secrets": True, "privacy_filter": "maybe", "normalization": True, "sample_dlp_imports": True}})
     with pytest.raises(PolicyValidationError, match="invalid privacy_filter"):
         load_policy(path)
+
+
+def test_missing_policy_file_fails_closed(tmp_path):
+    missing = tmp_path / "missing.yaml"
+    with pytest.raises(FileNotFoundError):
+        load_policy(missing)

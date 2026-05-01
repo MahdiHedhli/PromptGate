@@ -3,7 +3,7 @@ set -euo pipefail
 if [[ -f .env ]]; then set -a; source .env; set +a; fi
 py="${PYTHON:-}"
 if [[ -z "$py" && -x ".venv/bin/python" ]]; then py=".venv/bin/python"; fi
-if [[ -z "$py" ]]; then py="$(command -v python3.12 || command -v python3)"; fi
+if [[ -z "$py" ]]; then py="$(command -v python3.12 || command -v python3.11 || command -v python3)"; fi
 gateway_port="${PROMPTGATE_TEST_GATEWAY_PORT:-8790}"
 upstream_port="${PROMPTGATE_FAKE_UPSTREAM_PORT:-8791}"
 capture="docs/reports/generated/fake-upstream-capture.json"
@@ -11,8 +11,14 @@ rm -f "$capture"
 upstream_pid=""
 gateway_pid=""
 cleanup() {
-  [[ -n "$gateway_pid" ]] && kill "$gateway_pid" >/dev/null 2>&1 || true
-  [[ -n "$upstream_pid" ]] && kill "$upstream_pid" >/dev/null 2>&1 || true
+  if [[ -n "$gateway_pid" ]]; then
+    kill "$gateway_pid" >/dev/null 2>&1 || true
+    wait "$gateway_pid" 2>/dev/null || true
+  fi
+  if [[ -n "$upstream_pid" ]]; then
+    kill "$upstream_pid" >/dev/null 2>&1 || true
+    wait "$upstream_pid" 2>/dev/null || true
+  fi
 }
 trap cleanup EXIT
 PROMPTGATE_FAKE_CAPTURE="$capture" "$py" -m uvicorn scripts.fake_upstream:app --host 127.0.0.1 --port "$upstream_port" >/tmp/promptgate-fake-upstream.log 2>&1 &

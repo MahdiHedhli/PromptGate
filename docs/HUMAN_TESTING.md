@@ -2,10 +2,12 @@
 
 Run these from `/Users/mhedhli/Documents/Coding/PromptGate`.
 
+Owner involvement begins at the real-provider and Claude Code tests. Everything before that is automated and uses local fake services.
+
 ## 1. Python Local Demo
 
 ```bash
-python3.12 -m venv .venv
+python3.12 -m venv .venv || python3.11 -m venv .venv
 .venv/bin/python -m pip install -e ".[dev]"
 cp .env.example .env
 ./scripts/setup-local-key.sh
@@ -55,7 +57,7 @@ Then run the printed curl command or use `OPENAI_BASE_URL=http://127.0.0.1:8787/
 
 Expected result: fake upstream capture contains placeholders and redacted headers only.
 
-## 6. LiteLLM Route Shape
+## 6. Fake LiteLLM Route Shape
 
 ```bash
 ./scripts/test-litellm-route.sh
@@ -63,7 +65,15 @@ Expected result: fake upstream capture contains placeholders and redacted header
 
 This uses a local fake LiteLLM/provider-compatible upstream. It proves the route shape without external credentials.
 
-## 7. Streaming Behavior
+## 7. Local MITM Fake-Upstream Verification
+
+```bash
+./scripts/test-mitm-fake-upstream.sh
+```
+
+Expected result: mitmproxy capture under `local/runtime/mitm/` contains placeholders and no raw synthetic sensitive values.
+
+## 8. Streaming Behavior
 
 ```bash
 curl -s http://127.0.0.1:8787/v1/chat/completions \
@@ -74,14 +84,14 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \
 
 Expected result: local 400 response explaining that streaming is rejected safely in 0.1.0.
 
-## 8. Release Gates
+## 9. Release Gates
 
 ```bash
 ./scripts/release-check.sh
 ./scripts/smoke-clean-install.sh
 ```
 
-## 9. Reports And Benchmarks
+## 10. Reports And Benchmarks
 
 ```bash
 ./scripts/benchmark-local.py
@@ -96,7 +106,36 @@ Inspect:
 - `docs/reports/generated/promptgate-report.md`
 - `docs/reports/generated/fake-upstream-capture.json`
 
-## 10. Blog Screenshot Checklist
+## 11. Real Provider MITM Verification
+
+Read [MITM_VERIFICATION.md](MITM_VERIFICATION.md). This requires owner-supplied provider credentials.
+
+High-level flow:
+
+```text
+OpenAI-compatible client or Claude Code -> PromptGate -> mitmproxy -> real provider
+```
+
+Use synthetic prompt content only. Do not screenshot API keys, Authorization headers, or raw real provider payloads.
+
+## 12. Claude Code Routing Test
+
+```bash
+./scripts/setup-claude-code.sh
+```
+
+Use the printed local environment variables in the shell where Claude Code is launched. Owner credentials and account-specific Claude Code setup are owner-only.
+
+## 13. Clean Up Local Runtime Artifacts
+
+```bash
+./scripts/stop-mitm.sh || true
+rm -rf local/runtime/mitm/*
+```
+
+Do not commit local runtime artifacts.
+
+## 14. Blog Screenshot Checklist
 
 - Terminal showing `release-check` passing.
 - Mock provider egress proof output.
@@ -104,6 +143,7 @@ Inspect:
 - Benchmark summary table.
 - `curl /status` showing detector state without secrets.
 - Mermaid architecture diagram in `docs/blog-assets/architecture.md`.
+- MITM request body with placeholders and no raw synthetic values.
 
 ## Optional Owner-Credential Tests
 

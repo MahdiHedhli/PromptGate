@@ -102,7 +102,14 @@ async def _send_upstream(endpoint: str, payload: dict, mock_kind: str) -> dict:
         return await mock.chat_completion(payload)
     if settings.provider_mode == "upstream":
         try:
-            return await forward(endpoint, payload, settings.upstream_base_url, settings.upstream_api_key)
+            return await forward(
+                endpoint,
+                payload,
+                settings.upstream_base_url,
+                settings.upstream_api_key,
+                settings.upstream_http_proxy,
+                settings.upstream_ca_bundle,
+            )
         except UpstreamConfigError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
     raise HTTPException(status_code=503, detail="invalid PROMPTGATE_PROVIDER_MODE")

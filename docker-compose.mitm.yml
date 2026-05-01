@@ -1,0 +1,30 @@
+services:
+  fake-upstream:
+    build: .
+    command: uvicorn promptgate.providers.fake_upstream_app:app --host 0.0.0.0 --port 8791
+    expose:
+      - "8791"
+
+  mitmproxy:
+    image: mitmproxy/mitmproxy:latest
+    depends_on:
+      - fake-upstream
+    command:
+      - mitmdump
+      - --mode
+      - regular
+      - --listen-host
+      - 0.0.0.0
+      - --listen-port
+      - "8080"
+      - --set
+      - block_global=false
+      - -s
+      - /addons/mitm_capture_addon.py
+      - -w
+      - /captures/promptgate-mitm.flows
+    ports:
+      - "127.0.0.1:${PROMPTGATE_MITM_PROXY_PORT:-8898}:8080"
+    volumes:
+      - ./local/runtime/mitm:/captures
+      - ./scripts/mitm_capture_addon.py:/addons/mitm_capture_addon.py:ro

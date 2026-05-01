@@ -11,7 +11,7 @@ base="http://127.0.0.1:${port}"
 token="${PROMPTGATE_AUTH_TOKEN:-local_promptgate_key}"
 py="${PYTHON:-}"
 if [[ -z "$py" && -x ".venv/bin/python" ]]; then py=".venv/bin/python"; fi
-if [[ -z "$py" ]]; then py="$(command -v python3.12 || command -v python3)"; fi
+if [[ -z "$py" ]]; then py="$(command -v python3.12 || command -v python3.11 || command -v python3)"; fi
 tmp_log="$(mktemp)"
 server_pid=""
 

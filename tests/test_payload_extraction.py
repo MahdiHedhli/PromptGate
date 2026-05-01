@@ -53,6 +53,18 @@ def test_responses_style_fields_rewritten():
     assert "CODENAME" in body and "PRIVATE_EMAIL" in body and "IP_ADDRESS" in body
 
 
+def test_system_and_developer_messages_rewritten():
+    body = _post(
+        {
+            "model": "mock",
+            "system": "System note for Project Raven",
+            "developer": "Developer contact alice@example.com",
+            "messages": [{"role": "user", "content": "IP 10.9.8.7"}],
+        }
+    )
+    assert "CODENAME" in body and "PRIVATE_EMAIL" in body and "IP_ADDRESS" in body
+
+
 def test_tool_arguments_outputs_and_mcp_results_rewritten():
     body = _post(
         {
