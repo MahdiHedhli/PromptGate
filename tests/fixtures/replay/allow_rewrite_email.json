@@ -1,0 +1,15 @@
+{
+  "name": "allow_rewrite_email",
+  "payload": {
+    "model": "mock",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Contact alice@example.com from 10.1.2.3 about Project Raven."
+      }
+    ]
+  },
+  "expect_allowed": true,
+  "must_not_contain": ["alice@example.com", "10.1.2.3", "Project Raven"],
+  "must_contain": ["PRIVATE_EMAIL", "IP_ADDRESS", "CODENAME"]
+}

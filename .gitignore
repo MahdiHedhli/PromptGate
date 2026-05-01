@@ -1,0 +1,90 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*.csr
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+*_rsa
+*_ed25519
+secrets/
+.secret/
+*.secret
+*.secrets
+
+# Local-only workspace
+.local/
+local/
+_local/
+LOCAL_ONLY/
+scratch/
+tmp/
+temp/
+
+# Agent and handoff files
+.agent
+.agent/
+.agents/
+agents/
+*.agent
+*handoff*
+*codex*
+*research_notes*
+ai_dlp_research_notes.md
+promptgate_codex_*.md
+
+# Reports and generated runtime evidence
+docs/reports/
+reports/
+runtime/
+logs/
+*.log
+*.sqlite
+*.db
+*.db-shm
+*.db-wal
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Node and tooling
+node_modules/
+.npm/
+.pnpm-store/
+
+# Docker/local volumes
+docker-data/
+volumes/
+postgres_data/
+
+# MacOS and editor artifacts
+.DS_Store
+.AppleDouble
+.LSOverride
+__MACOSX/
+._*
+Icon?
+.Spotlight-V100/
+.Trashes/
+.vscode/
+.idea/

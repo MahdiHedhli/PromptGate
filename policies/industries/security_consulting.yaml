@@ -1,0 +1,21 @@
+profile: security_consulting
+mode: enforce
+logging: {raw_prompts: false, redacted_prompts: true, findings: true}
+detectors: {regex: true, secrets: true, privacy_filter: optional, normalization: true, sample_dlp_imports: true}
+actions: {private_email: tokenize, private_phone: mask, secret: block, api_key: block, jwt: block, database_url: block, internal_domain: tokenize, ip_address: tokenize, file_path: mask, account_number: block}
+allowlist: []
+rules:
+  - id: client_codename
+    type: keyword
+    values: ["Project Raven", "Client Orion"]
+    category: client_codename
+    action: tokenize
+    token_prefix: CODENAME
+    severity: high
+  - id: internal_ticket
+    type: regex
+    pattern: "\\b[A-Z]{2,10}-SEC-[0-9]{3,8}\\b"
+    category: internal_ticket
+    action: tokenize
+    token_prefix: TICKET
+    severity: medium

@@ -1,0 +1,13 @@
+rules:
+  - id: sample_finance_wire_ref
+    type: regex
+    pattern: "\\bWIRE-[0-9]{6,12}\\b"
+    category: account_number
+    action: block
+    severity: critical
+  - id: sample_healthcare_mrn
+    type: regex
+    pattern: "\\bMRN-[0-9]{6,12}\\b"
+    category: account_number
+    action: block
+    severity: critical

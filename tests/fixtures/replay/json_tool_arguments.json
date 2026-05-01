@@ -1,0 +1,22 @@
+{
+  "name": "json_tool_arguments",
+  "payload": {
+    "model": "mock",
+    "messages": [
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "name": "lookup",
+              "arguments": "{\"email\":\"alice@example.com\",\"host\":\"api.internal.corp.example.com\"}"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "expect_allowed": true,
+  "must_not_contain": ["alice@example.com", "api.internal.corp.example.com"],
+  "must_contain": ["PRIVATE_EMAIL", "INTERNAL_DOMAIN"]
+}

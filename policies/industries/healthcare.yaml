@@ -1,0 +1,13 @@
+profile: healthcare
+mode: enforce
+logging: {raw_prompts: false, redacted_prompts: true, findings: true}
+detectors: {regex: true, secrets: true, privacy_filter: optional, normalization: true, sample_dlp_imports: true}
+actions: {private_email: tokenize, private_phone: tokenize, private_person: tokenize, private_date: mask, account_number: block, secret: block, api_key: block}
+allowlist: []
+rules:
+  - id: medical_record_number
+    type: regex
+    pattern: "\\bMRN[- ]?[0-9]{6,12}\\b"
+    category: account_number
+    action: block
+    severity: critical

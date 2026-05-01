@@ -1,0 +1,8 @@
+rules:
+  - id: sample_employee_id
+    type: regex
+    pattern: "\\bEMP-[0-9]{5,8}\\b"
+    category: employee_id
+    action: tokenize
+    token_prefix: EMP
+    severity: medium

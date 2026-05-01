@@ -1,0 +1,14 @@
+profile: media_entertainment
+mode: enforce
+logging: {raw_prompts: false, redacted_prompts: true, findings: true}
+detectors: {regex: true, secrets: true, privacy_filter: optional, normalization: true, sample_dlp_imports: true}
+actions: {private_email: tokenize, private_phone: mask, private_url: tokenize, secret: block, api_key: block, internal_domain: tokenize}
+allowlist: []
+rules:
+  - id: unreleased_project
+    type: keyword
+    values: ["Project Raven", "Client Orion"]
+    category: client_codename
+    action: tokenize
+    token_prefix: CODENAME
+    severity: high

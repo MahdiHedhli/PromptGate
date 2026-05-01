@@ -1,0 +1,13 @@
+profile: finance
+mode: enforce
+logging: {raw_prompts: false, redacted_prompts: true, findings: true}
+detectors: {regex: true, secrets: true, privacy_filter: optional, normalization: true, sample_dlp_imports: true}
+actions: {private_email: tokenize, private_phone: tokenize, account_number: block, secret: block, api_key: block, database_url: block, internal_domain: tokenize, ip_address: tokenize}
+allowlist: []
+rules:
+  - id: account_number
+    type: regex
+    pattern: "\\b(?:acct|account)[ -]?[0-9]{8,16}\\b"
+    category: account_number
+    action: block
+    severity: critical

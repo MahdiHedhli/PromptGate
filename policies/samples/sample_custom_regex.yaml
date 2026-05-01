@@ -1,0 +1,6 @@
+custom_regex:
+  - id: sample_case_number
+    pattern: "\\bCASE-[A-Z]{2}-[0-9]{4}\\b"
+    category: case_number
+    action: tokenize
+    severity: medium

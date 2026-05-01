@@ -1,0 +1,6 @@
+custom_regex:
+  - id: sample_internal_domain
+    pattern: "\\b[a-z0-9.-]+\\.(?:corp|internal|prod|staging)\\.example\\.com\\b"
+    category: internal_domain
+    action: tokenize
+    severity: high
