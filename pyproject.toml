@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "promptgate"
@@ -23,8 +23,8 @@ dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
 [project.scripts]
 promptgate = "promptgate.cli:main"
 
-[tool.hatch.build.targets.wheel]
-packages = ["promptgate"]
+[tool.setuptools.packages.find]
+include = ["promptgate*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

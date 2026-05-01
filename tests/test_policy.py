@@ -12,6 +12,7 @@ def test_policy_loading():
     assert policy.profile == "security_consulting"
     assert policy.action_for("api_key") == "block"
     assert policy.logging.raw_prompts is False
+    assert policy.tokenization.mode == "scoped_random"
 
 
 def test_industry_policy_generation(tmp_path, monkeypatch):
@@ -75,6 +76,52 @@ def test_invalid_policy_profile(tmp_path):
 def test_invalid_privacy_filter_config(tmp_path):
     path = _write_policy(tmp_path, {"detectors": {"regex": True, "secrets": True, "privacy_filter": "maybe", "normalization": True, "sample_dlp_imports": True}})
     with pytest.raises(PolicyValidationError, match="invalid privacy_filter"):
+        load_policy(path)
+
+
+def test_privacy_filter_local_service_config(tmp_path):
+    path = _write_policy(
+        tmp_path,
+        {
+            "detectors": {
+                "regex": True,
+                "secrets": True,
+                "privacy_filter": {"enabled": True, "mode": "local_service", "url": "http://127.0.0.1:8081"},
+                "normalization": True,
+                "sample_dlp_imports": True,
+            }
+        },
+    )
+    policy = load_policy(path)
+    assert policy.detectors.privacy_filter["mode"] == "local_service"
+
+
+def test_privacy_filter_local_service_requires_url(tmp_path):
+    path = _write_policy(
+        tmp_path,
+        {
+            "detectors": {
+                "regex": True,
+                "secrets": True,
+                "privacy_filter": {"enabled": True, "mode": "local_service"},
+                "normalization": True,
+                "sample_dlp_imports": True,
+            }
+        },
+    )
+    with pytest.raises(PolicyValidationError, match="requires url"):
+        load_policy(path)
+
+
+def test_invalid_tokenization_config(tmp_path):
+    path = _write_policy(tmp_path, {"tokenization": {"mode": "sequential"}})
+    with pytest.raises(PolicyValidationError, match="invalid tokenization mode"):
+        load_policy(path)
+
+
+def test_invalid_rule_audit_only_config(tmp_path):
+    path = _write_policy(tmp_path, {"rules": [{"id": "bad_audit", "type": "keyword", "values": ["A"], "audit_only": "yes"}]})
+    with pytest.raises(PolicyValidationError, match="audit_only.*bad_audit"):
         load_policy(path)
 
 

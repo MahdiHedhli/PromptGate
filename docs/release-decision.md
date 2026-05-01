@@ -1,0 +1,49 @@
+# PromptGate Release Decision
+
+Status: Yellow pending owner real-provider visual MITM verification. Automated local gates are expected to be green.
+
+## What Changed
+
+- Added scoped random tokenization by default.
+- Added TTL and LRU bounds for the in-memory token vault.
+- Kept deterministic tokenization as explicit opt-in.
+- Added global and per-rule audit-only semantics.
+- Added optional local-service Privacy Filter configuration shape.
+- Added ADRs and a strengthened threat model.
+
+## What Was Ported From PromptGuard
+
+- Token-map ledger risk framing.
+- Unguessable scoped token format.
+- TTL and max-conversation eviction.
+- ADR discipline.
+- LiteLLM hook versus gateway decision framing.
+- Audit-only rollout semantics.
+- MITM proof discipline.
+
+## What Was Intentionally Not Ported
+
+- Full PromptGuard architecture.
+- Production LiteLLM CustomLogger hook.
+- Response restoration.
+- Real Privacy Filter model runtime.
+- Presidio runtime.
+- LLM judge.
+- Production Purview, Google SDP, Netskope, Zscaler, or Nightfall adapters.
+
+## Known Limitations
+
+- Real provider MITM requires owner credentials and visual verification.
+- Privacy Filter local service is optional and mock/test oriented unless the owner enables a real service.
+- Browser ChatGPT, SaaS IDE backends, vendor-managed indexes, file/image uploads, and agentic browser actions are outside the local API gateway path.
+- Response token restoration is intentionally off by default.
+
+## Recommended Public Release Decision
+
+Keep PromptGate as the canonical implementation. Release as a local-first MVP after owner completes the real-provider MITM visual test and chooses whether to keep the repository private or prepare a public-safe cleanup.
+
+## Recommended Next Sprint
+
+1. Owner-run real provider MITM verification with synthetic data.
+2. Decide whether response restoration is in or out for 0.2.
+3. Decide whether to prioritize a LiteLLM CustomLogger hook or keep LiteLLM downstream routing only.

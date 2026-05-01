@@ -42,5 +42,5 @@ if grep -F -q -e 'alice@example.com' -e '10.1.2.3' -e 'Project Raven' -e 'fake-u
   cat "$capture" >&2
   exit 1
 fi
-grep -F -q '[PRIVATE_EMAIL_001]' "$capture"
+grep -E -q '\[PRIVATE_EMAIL_[A-Fa-f0-9]{16}\]|\[PRIVATE_EMAIL_001\]' "$capture"
 echo "PASS: direct upstream route received rewritten payload only"

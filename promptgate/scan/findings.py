@@ -14,6 +14,7 @@ class Finding:
     rule_id: str | None = None
     normalized: bool = False
     safe_replace: bool = True
+    confidence: float | None = None
 
     def overlaps(self, other: "Finding") -> bool:
         return self.start < other.end and other.start < self.end

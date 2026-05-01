@@ -31,15 +31,14 @@ docker compose up -d
 Claude Code-style local override:
 
 ```bash
-export ANTHROPIC_AUTH_TOKEN=local_promptgate_key
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8787
+./scripts/setup-claude-code.sh
 ```
 
 OpenAI-compatible request:
 
 ```bash
 curl -s http://127.0.0.1:8787/v1/chat/completions \
-  -H "Authorization: Bearer local_promptgate_key" \
+  -H "Authorization: Bearer $PROMPTGATE_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"model":"mock","messages":[{"role":"user","content":"Email alice@example.com"}]}'
 ```
@@ -52,6 +51,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \
 - Nested text fields including system/developer content, tool output, content blocks, prompts, and arguments.
 - Local regex, secret, custom keyword, sample DLP import, and adversarial normalization scanners.
 - Optional Privacy Filter scanner interface with a mock provider for tests.
+- Scoped random tokenization by default, with deterministic mode available only when explicitly configured.
 
 ## What It Does Not Cover
 
@@ -67,6 +67,8 @@ promptgate init --industry media_entertainment --no-privacy-filter
 ```
 
 Secrets default to `block`. PII and infrastructure default to `mask` or `tokenize` depending on category and profile. Raw prompt logging is disabled by default.
+
+Tokenization defaults to per-conversation scoped random placeholders with TTL/LRU eviction. Deterministic sequential placeholders remain available for demos and reproducible tests by setting `tokenization.mode: deterministic`.
 
 ## Benchmark Notes
 
@@ -92,8 +94,8 @@ It writes machine-readable JSON and a Markdown summary under `docs/reports/bench
 Useful individual commands:
 
 ```bash
-promptgate validate-policy policies/default.yaml
-promptgate doctor
+.venv/bin/python -m promptgate validate-policy policies/default.yaml
+./scripts/doctor.sh
 ./scripts/test-direct-upstream.sh
 ./scripts/test-litellm-route.sh
 ./scripts/export-report.sh

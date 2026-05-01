@@ -27,7 +27,7 @@ What it does:
 - Sends synthetic sensitive data through PromptGate.
 - Saves local MITM captures under `local/runtime/mitm/`.
 - Fails if raw synthetic values or fake keys appear in captured upstream requests.
-- Passes only if placeholders such as `[PRIVATE_EMAIL_001]`, `[IP_ADDRESS_001]`, and `[CODENAME_001]` appear in the capture.
+- Passes only if placeholders such as `[PRIVATE_EMAIL_<random>]`, `[IP_ADDRESS_<random>]`, and `[CODENAME_<random>]` appear in the capture.
 
 Manual stack controls:
 
@@ -77,7 +77,7 @@ Never paste real provider keys into docs, reports, screenshots, or GitHub issues
 3. Open mitmweb, typically `http://127.0.0.1:8081`.
 4. Send a synthetic prompt through Claude Code or an OpenAI-compatible curl request routed through PromptGate.
 5. Click the upstream provider request in mitmweb.
-6. Verify the request body contains placeholders like `[PRIVATE_EMAIL_001]`, `[IP_ADDRESS_001]`, and `[CODENAME_001]`.
+6. Verify the request body contains placeholders like `[PRIVATE_EMAIL_<random>]`, `[IP_ADDRESS_<random>]`, and `[CODENAME_<random>]`.
 7. Verify the request body does not contain the raw synthetic values.
 8. Send a synthetic blocked-secret prompt.
 9. Verify no upstream provider request is created for the blocked prompt.

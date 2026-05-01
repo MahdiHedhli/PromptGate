@@ -10,6 +10,7 @@ mode: enforce
 logging: {}
 detectors: {}
 actions: {}
+tokenization: {}
 allowlist: []
 rules: []
 ```
@@ -33,7 +34,7 @@ Supported actions:
 
 - `block`: reject the request locally.
 - `mask`: replace the original span with `[CATEGORY_REDACTED]`.
-- `tokenize`: replace with deterministic session placeholders such as `[PRIVATE_EMAIL_001]`.
+- `tokenize`: replace with scoped random placeholders by default, such as `[PRIVATE_EMAIL_a3f9c1d2e4b56789]`.
 - `allow`: send unchanged.
 - `audit`: record redacted metadata and allow unchanged.
 
@@ -45,7 +46,29 @@ Supported detectors:
 - `normalization`
 - `sample_dlp_imports`
 
-Privacy Filter values are `optional`, `enabled`, `disabled`, `true`, or `false`. The MVP ships with a mockable provider interface and does not download model files by default.
+Privacy Filter values are `optional`, `enabled`, `disabled`, `true`, `false`, or a local-service configuration:
+
+```yaml
+detectors:
+  privacy_filter:
+    enabled: true
+    mode: local_service
+    url: http://privacy-filter:8081
+```
+
+The MVP ships with a mockable provider interface and does not download model files by default.
+
+Tokenization defaults:
+
+```yaml
+tokenization:
+  mode: scoped_random
+  ttl_seconds: 3600
+  max_conversations: 100
+  restore_responses: false
+```
+
+`deterministic` mode remains available for demos and reproducible tests, but it is opt-in because sequential tokens are easier to guess than scoped random tokens.
 
 Rules:
 
@@ -58,6 +81,7 @@ rules:
     action: tokenize
     token_prefix: CODENAME
     severity: high
+    audit_only: true
 
   - id: internal_ticket
     type: regex

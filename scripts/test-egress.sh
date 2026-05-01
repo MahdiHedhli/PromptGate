@@ -6,7 +6,7 @@ if [[ -f .env ]]; then
   source .env
   set +a
 fi
-port="${PROMPTGATE_PORT:-8787}"
+port="${PROMPTGATE_EGRESS_PORT:-8795}"
 base="http://127.0.0.1:${port}"
 token="${PROMPTGATE_AUTH_TOKEN:-local_promptgate_key}"
 py="${PYTHON:-}"
@@ -23,14 +23,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if ! curl -fsS "$base/health" >/dev/null 2>&1; then
-  "$py" -m uvicorn promptgate.server:app --host 127.0.0.1 --port "$port" >"$tmp_log" 2>&1 &
-  server_pid="$!"
-  for _ in {1..40}; do
-    curl -fsS "$base/health" >/dev/null 2>&1 && break
-    sleep 0.25
-  done
-fi
+"$py" -m uvicorn promptgate.server:app --host 127.0.0.1 --port "$port" >"$tmp_log" 2>&1 &
+server_pid="$!"
+for _ in {1..40}; do
+  curl -fsS "$base/health" >/dev/null 2>&1 && break
+  sleep 0.25
+done
+curl -fsS "$base/health" >/dev/null
 
 curl -fsS -X POST "$base/mock/reset" >/dev/null
 

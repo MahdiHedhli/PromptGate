@@ -6,6 +6,7 @@ Current MVP status:
 
 - `promptgate.scan.privacy_filter` defines the provider protocol.
 - Tests use a mock provider.
+- A local-service provider shape is implemented and tested with mocked HTTP.
 - The repo works without downloading a model.
 
 Label mapping:
@@ -21,4 +22,31 @@ Label mapping:
 | account_number | account_number |
 | secret | secret |
 
-Real integration path: implement `PrivacyFilterProvider.find(text)` with the model runtime, enable `detectors.privacy_filter: enabled`, and keep raw prompt logging disabled.
+Local-service policy shape:
+
+```yaml
+detectors:
+  privacy_filter:
+    enabled: true
+    mode: local_service
+    url: http://privacy-filter:8081
+    timeout_seconds: 2
+    fail_closed: true
+```
+
+Expected local service API:
+
+```http
+POST /scan
+Content-Type: application/json
+
+{"text":"Email alice@example.com"}
+```
+
+Response:
+
+```json
+{"findings":[{"label":"private_email","start":6,"end":23,"score":0.99}]}
+```
+
+Real integration path: run a local Privacy Filter service that implements the API above, enable the local-service policy shape, and keep raw prompt logging disabled. The default install does not download model weights. Model size, cold start time, hardware needs, and label quality must be validated by the owner before any public claim of real model-backed coverage.

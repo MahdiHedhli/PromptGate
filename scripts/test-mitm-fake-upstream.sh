@@ -56,7 +56,7 @@ if grep -F -q -e 'alice@example.com' -e '10.1.2.3' -e 'Project Raven' -e 'sk-tes
   echo "FAIL: raw sensitive value or fake key appeared in MITM capture" >&2
   exit 1
 fi
-grep -F -q '[PRIVATE_EMAIL_001]' "$capture_jsonl"
-grep -F -q '[IP_ADDRESS_001]' "$capture_jsonl"
-grep -F -q '[CODENAME_001]' "$capture_jsonl"
+grep -E -q '\[PRIVATE_EMAIL_[A-Fa-f0-9]{16}\]|\[PRIVATE_EMAIL_001\]' "$capture_jsonl"
+grep -E -q '\[IP_ADDRESS_[A-Fa-f0-9]{16}\]|\[IP_ADDRESS_001\]' "$capture_jsonl"
+grep -E -q '\[CODENAME_[A-Fa-f0-9]{16}\]|\[CODENAME_001\]' "$capture_jsonl"
 echo "PASS: MITM fake-upstream capture contains rewritten placeholders and no raw synthetic values"

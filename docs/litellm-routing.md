@@ -2,7 +2,7 @@
 
 PromptGate's default provider mode is the local mock provider because it gives deterministic egress proof without external credentials.
 
-Documented LiteLLM path:
+Tested LiteLLM route shape:
 
 ```text
 AI client
@@ -22,3 +22,5 @@ PROMPTGATE_UPSTREAM_API_KEY=<litellm-or-provider-key>
 ```
 
 PromptGate forwards only rewritten payloads in upstream mode. Real provider or LiteLLM tests require explicit credentials and deployment-specific configuration. Do not treat this as production LiteLLM routing until the downstream LiteLLM deployment is tested.
+
+PromptGuard's CustomLogger hook pattern remains a useful future option, but PromptGate does not ship a production LiteLLM hook in this branch. The default gateway path stays the supported MVP path.

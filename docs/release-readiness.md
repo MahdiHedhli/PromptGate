@@ -6,6 +6,8 @@
 | Docker quickstart | Green | `docker compose up -d --build && curl /health` | Docker container | Run on owner machine |
 | Auth defaults | Green | pytest auth tests, `./scripts/doctor.sh` | tests/test_auth_and_upstream.py | Choose demo token handling |
 | Policy validation | Green | `promptgate validate-policy policies/default.yaml` | policies/default.yaml | Edit profile as needed |
+| Scoped tokenization | Green | pytest token vault tests | tests/test_redaction.py | Decide if demos need deterministic mode |
+| Audit-only rollout | Green | pytest audit-only tests | tests/test_redaction.py | Decide rollout policy for new org rules |
 | Egress proof | Green | `./scripts/test-egress.sh` | mock provider capture | Run before demo |
 | Direct upstream routing | Green | `./scripts/test-direct-upstream.sh` | docs/reports/generated/fake-upstream-capture.json | Real provider credentials optional |
 | LiteLLM route shape | Green | `./scripts/test-litellm-route.sh` | fake upstream capture | Production LiteLLM deployment not claimed |
@@ -20,6 +22,6 @@
 | Repo hygiene | Green | `.gitignore`, `.dockerignore`, `git status --short` | root config files | Review before first commit |
 | Docs and limitations | Green | docs coverage files | docs/ | Owner editorial review |
 | External dataset licensing | Green | docs/benchmark-notes.md | docs/benchmark-notes.md | License review before external use |
-| Privacy Filter integration | Yellow | mocked tests only | docs/privacy-filter.md | Real model runtime is owner-only |
+| Privacy Filter integration | Yellow | mocked and local-service interface tests | docs/privacy-filter.md | Real model runtime is owner-only |
 | Browser and IDE scope limits | Green | docs/coverage-surface.md | docs/coverage-surface.md | Keep public claims narrow |
 | Open owner decisions | Yellow | this file | N/A | Repo publishing, branding, real-provider smoke |

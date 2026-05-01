@@ -29,6 +29,24 @@ Doctor checks policy validity, auth mode, provider mode, upstream config, raw pr
 
 PromptGate 0.1.0 rejects `stream=true` safely. Requests are scanned first; if they are otherwise allowed, the gateway returns a clear local error before forwarding. This prevents streaming from becoming an unscanned bypass.
 
+## Tokenization
+
+Default tokenization is scoped random:
+
+```yaml
+tokenization:
+  mode: scoped_random
+  ttl_seconds: 3600
+  max_conversations: 100
+  restore_responses: false
+```
+
+Token mappings are in-memory only, scoped by conversation/request ID, and evicted by TTL and LRU limits. They are not written to status, logs, reports, or audit events. `deterministic` mode is available for reproducible demos and tests, but it is opt-in.
+
+## Audit-Only Rollout
+
+Set `mode: audit`, `audit_only: true`, or per-rule `audit_only: true` to observe findings without blocking or rewriting. Audit-only events are sanitized metadata only.
+
 ## Upstream Modes
 
 Default:

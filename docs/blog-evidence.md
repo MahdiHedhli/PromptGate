@@ -24,7 +24,7 @@ Provider modes: mock, direct upstream, LiteLLM route shape, MITM fake upstream.
   "messages": [
     {
       "role": "user",
-      "content": "Email [PRIVATE_EMAIL_001] from [IP_ADDRESS_001] about [CODENAME_001]."
+      "content": "Email [PRIVATE_EMAIL_a3f9c1d2e4b56789] from [IP_ADDRESS_4b8e1a92cd3f7e60] about [CODENAME_9a81fb320a5c4d77]."
     }
   ]
 }

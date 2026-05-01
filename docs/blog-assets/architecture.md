@@ -17,7 +17,7 @@ flowchart LR
 
 ## Egress Proof Summary
 
-Synthetic sensitive inputs are sent to PromptGate. The upstream mock/fake provider receives placeholders such as `[PRIVATE_EMAIL_001]`, `[IP_ADDRESS_001]`, and `[CODENAME_001]`. Synthetic secrets are blocked locally.
+Synthetic sensitive inputs are sent to PromptGate. The upstream mock/fake provider receives scoped random placeholders such as `[PRIVATE_EMAIL_a3f9c1d2e4b56789]`, `[IP_ADDRESS_4b8e1a92cd3f7e60]`, and `[CODENAME_9a81fb320a5c4d77]`. Synthetic secrets are blocked locally.
 
 ## Coverage Matrix
 
