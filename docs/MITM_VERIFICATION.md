@@ -43,7 +43,7 @@ Do not commit files under `local/runtime/mitm/`.
 Goal:
 
 ```text
-Claude Code or OpenAI-compatible client -> PromptGate -> mitmproxy -> real provider
+Cherry Studio or OpenAI-compatible client -> PromptGate -> mitmproxy -> real provider
 ```
 
 This mode requires owner-supplied provider credentials and optional local certificate trust setup.
@@ -72,15 +72,16 @@ Never paste real provider keys into docs, reports, screenshots, or GitHub issues
 
 ### Visual Steps
 
-1. Start mitmproxy or mitmweb.
-2. Start PromptGate with the upstream environment above.
-3. Open mitmweb, typically `http://127.0.0.1:8081`.
-4. Send a synthetic prompt through Claude Code or an OpenAI-compatible curl request routed through PromptGate.
-5. Click the upstream provider request in mitmweb.
-6. Verify the request body contains placeholders like `[PRIVATE_EMAIL_<random>]`, `[IP_ADDRESS_<random>]`, and `[CODENAME_<random>]`.
-7. Verify the request body does not contain the raw synthetic values.
-8. Send a synthetic blocked-secret prompt.
-9. Verify no upstream provider request is created for the blocked prompt.
+1. Follow `docs/DESKTOP_APP_DEMO.md` for the Cherry Studio path.
+2. Start mitmproxy or mitmweb.
+3. Start PromptGate with the upstream environment above.
+4. Open mitmweb, typically `http://127.0.0.1:8897` when using the live-demo helper.
+5. Send the allowed live prompt through Cherry Studio or an OpenAI-compatible curl request routed through PromptGate.
+6. Click the upstream provider request in mitmweb.
+7. Verify the request body contains placeholders like `[PRIVATE_EMAIL_<random>]`, `[IP_ADDRESS_<random>]`, and `[CODENAME_<random>]`.
+8. Verify the request body does not contain the raw demo values.
+9. Send the blocked canary-secret prompt.
+10. Verify no upstream provider request is created for the blocked prompt.
 
 ### Safety Notes
 

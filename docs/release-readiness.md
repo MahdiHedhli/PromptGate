@@ -11,6 +11,8 @@
 | Egress proof | Green | `./scripts/test-egress.sh` | mock provider capture | Run before demo |
 | Direct upstream routing | Green | `./scripts/test-direct-upstream.sh` | docs/reports/generated/fake-upstream-capture.json | Real provider credentials optional |
 | LiteLLM route shape | Green | `./scripts/test-litellm-route.sh` | fake upstream capture | Production LiteLLM deployment not claimed |
+| Desktop app handshake | Green | pytest `/v1/models`, `/models`, `/chat/completions` tests | tests/test_auth_and_upstream.py | Owner configures Cherry Studio GUI |
+| Live desktop demo tooling | Green | pytest live-demo script tests | scripts/live-demo-*.sh | Owner supplies local credentials and demo values |
 | Streaming behavior | Green | pytest streaming rejection test | tests/test_gateway_egress.py | Decide when to add streaming support |
 | MITM fake-upstream verification | Green | `./scripts/test-mitm-fake-upstream.sh` | local/runtime/mitm/ ignored captures | Owner can run visual MITM next |
 | Real-provider MITM | Yellow | docs/MITM_VERIFICATION.md | owner local mitmproxy | Requires owner credentials |

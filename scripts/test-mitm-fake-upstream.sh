@@ -23,7 +23,11 @@ cleanup() {
   COMPOSE_PROJECT_NAME=promptgate_mitm docker compose -f docker-compose.mitm.yml down >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
-COMPOSE_PROJECT_NAME=promptgate_mitm PROMPTGATE_MITM_PROXY_PORT="$proxy_port" docker compose -f docker-compose.mitm.yml up -d --build >/tmp/promptgate-mitm-compose.log
+compose_build_flag="--build"
+if docker image inspect promptgate_mitm-fake-upstream:latest >/dev/null 2>&1; then
+  compose_build_flag="--no-build"
+fi
+COMPOSE_PROJECT_NAME=promptgate_mitm PROMPTGATE_MITM_PROXY_PORT="$proxy_port" docker compose -f docker-compose.mitm.yml up -d "$compose_build_flag" >/tmp/promptgate-mitm-compose.log
 for _ in {1..80}; do
   if curl -fsS -x "http://127.0.0.1:${proxy_port}" http://fake-upstream:8791/docs >/dev/null 2>&1; then
     break

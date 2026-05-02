@@ -17,9 +17,15 @@ class Settings:
     port: int
     local_auth_token: str
     unsafe_dev_no_auth: bool
+    model_list: tuple[str, ...]
 
 
 def current_settings() -> Settings:
+    models = tuple(
+        model.strip()
+        for model in os.getenv("PROMPTGATE_MODEL_LIST", "promptgate-live,mock").split(",")
+        if model.strip()
+    )
     return Settings(
         policy_path=Path(os.getenv("PROMPTGATE_POLICY", "policies/default.yaml")),
         provider_mode=os.getenv("PROMPTGATE_PROVIDER_MODE", "mock"),
@@ -31,6 +37,7 @@ def current_settings() -> Settings:
         port=int(os.getenv("PROMPTGATE_PORT", "8787")),
         local_auth_token=os.getenv("PROMPTGATE_AUTH_TOKEN", ""),
         unsafe_dev_no_auth=os.getenv("PROMPTGATE_UNSAFE_DEV_NO_AUTH", "false").lower() in {"1", "true", "yes"},
+        model_list=models or ("promptgate-live",),
     )
 
 

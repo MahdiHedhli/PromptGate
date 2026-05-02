@@ -40,6 +40,18 @@ async def health() -> dict:
     return {"status": "ok"}
 
 
+@app.get("/")
+async def root() -> dict:
+    return {
+        "name": "PromptGate",
+        "status": "ok",
+        "health": "/health",
+        "models": "/v1/models",
+        "openai_chat": "/v1/chat/completions",
+        "docs": "/docs",
+    }
+
+
 @app.get("/status")
 async def status() -> dict:
     policy = _policy()
@@ -51,6 +63,31 @@ async def status() -> dict:
         "provider_mode": current_settings().provider_mode,
         "auth_required": not current_settings().unsafe_dev_no_auth,
     }
+
+
+def _models_payload() -> dict:
+    return {
+        "object": "list",
+        "data": [
+            {
+                "id": model,
+                "object": "model",
+                "created": 0,
+                "owned_by": "promptgate-local",
+            }
+            for model in current_settings().model_list
+        ],
+    }
+
+
+@app.get("/v1/models")
+async def models() -> dict:
+    return _models_payload()
+
+
+@app.get("/models")
+async def models_unversioned() -> dict:
+    return _models_payload()
 
 
 @app.get("/mock/received")
@@ -66,6 +103,15 @@ async def mock_reset() -> dict:
 
 @app.post("/v1/chat/completions")
 async def chat_completions(payload: dict, authorization: str | None = Header(default=None)) -> JSONResponse:
+    return await _chat_completions_impl(payload, authorization)
+
+
+@app.post("/chat/completions")
+async def chat_completions_unversioned(payload: dict, authorization: str | None = Header(default=None)) -> JSONResponse:
+    return await _chat_completions_impl(payload, authorization)
+
+
+async def _chat_completions_impl(payload: dict, authorization: str | None) -> JSONResponse:
     _authorize(authorization)
     result = process_payload(payload, _policy(), vault)
     if not result.allowed:

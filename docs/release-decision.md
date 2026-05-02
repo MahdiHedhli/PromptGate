@@ -10,6 +10,9 @@ Status: Yellow pending owner real-provider visual MITM verification. Automated l
 - Added global and per-rule audit-only semantics.
 - Added optional local-service Privacy Filter configuration shape.
 - Added ADRs and a strengthened threat model.
+- Added live desktop app evidence workflow for Cherry Studio or an OpenAI-compatible fallback.
+- Added `/v1/models`, `/models`, and `/chat/completions` compatibility endpoints for desktop app handshakes.
+- Added live-demo scripts for preflight, stack startup/stop, allowed curl sanity check, blocked curl sanity check, and local leak assertion.
 
 ## What Was Ported From PromptGuard
 
@@ -34,6 +37,8 @@ Status: Yellow pending owner real-provider visual MITM verification. Automated l
 ## Known Limitations
 
 - Real provider MITM requires owner credentials and visual verification.
+- Live desktop app proof requires owner GUI actions and provider credentials.
+- Cherry Studio is the primary documented target. If it cannot disable streaming or route to an OpenAI-compatible base URL in the owner environment, use the documented fallback list and record why.
 - Privacy Filter local service is optional and mock/test oriented unless the owner enables a real service.
 - Browser ChatGPT, SaaS IDE backends, vendor-managed indexes, file/image uploads, and agentic browser actions are outside the local API gateway path.
 - Response token restoration is intentionally off by default.

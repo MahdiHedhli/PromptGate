@@ -16,6 +16,22 @@ Provider modes: mock, direct upstream, LiteLLM route shape, MITM fake upstream.
 5. `test-mitm-fake-upstream.sh` proves traffic routed through mitmproxy contains placeholders and not raw synthetic values.
 6. `assert-no-raw-leaks.sh` checks generated runtime reports for raw synthetic sensitive values.
 
+## Live Desktop Evidence Chain
+
+Synthetic CI tests prove regression safety. The blog proof should use the live desktop workflow in `docs/DESKTOP_APP_DEMO.md`:
+
+```text
+Cherry Studio -> PromptGate -> mitmweb -> real provider
+```
+
+Owner-only evidence:
+
+1. Desktop app allowed prompt with real PromptGate project context and owner-controlled demo values.
+2. Desktop app model response.
+3. mitmweb upstream request body showing placeholders only.
+4. Blocked canary-secret prompt returning a local PromptGate error.
+5. mitmweb request list showing no new upstream request for the blocked prompt.
+
 ## Expected Redacted Upstream Body
 
 ```json
@@ -32,6 +48,7 @@ Provider modes: mock, direct upstream, LiteLLM route shape, MITM fake upstream.
 
 ## MITM Screenshot Checklist
 
+- Use `docs/blog-assets/live-demo-screenshot-checklist.md`.
 - mitmweb request list showing an upstream request.
 - Request body showing placeholders.
 - No Authorization header visible unless redacted.

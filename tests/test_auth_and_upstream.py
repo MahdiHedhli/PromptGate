@@ -40,11 +40,36 @@ def test_unsafe_dev_mode_must_be_explicit(monkeypatch):
 def test_status_does_not_expose_secrets(monkeypatch):
     monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
     monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setenv("DEMO_EMAIL", "owner-demo@example.com")
     response = TestClient(app).get("/status")
     assert response.status_code == 200
     body = response.text
     assert "upstream-secret" not in body
     assert "local_promptgate_key" not in body
+    assert "owner-demo@example.com" not in body
+
+
+def test_models_endpoint_is_openai_compatible_and_sanitized(monkeypatch):
+    monkeypatch.setenv("PROMPTGATE_MODEL_LIST", "promptgate-live,gpt-demo")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    response = TestClient(app).get("/v1/models")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["object"] == "list"
+    assert [model["id"] for model in payload["data"]] == ["promptgate-live", "gpt-demo"]
+    assert "upstream-secret" not in response.text
+
+
+def test_unversioned_models_and_chat_completion_alias(monkeypatch):
+    monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
+    models = TestClient(app).get("/models")
+    assert models.status_code == 200
+    response = TestClient(app).post(
+        "/chat/completions",
+        json={"model": "promptgate-live", "messages": [{"role": "user", "content": "hello"}]},
+        headers={"Authorization": "Bearer local_promptgate_key"},
+    )
+    assert response.status_code == 200
 
 
 def test_upstream_forwarding_uses_rewritten_payload_and_hides_api_key(monkeypatch, caplog):
