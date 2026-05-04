@@ -96,6 +96,7 @@ Useful individual commands:
 ```bash
 .venv/bin/python -m promptgate validate-policy policies/default.yaml
 ./scripts/doctor.sh
+./scripts/install-demo-deps.sh
 ./scripts/test-direct-upstream.sh
 ./scripts/test-litellm-route.sh
 ./scripts/export-report.sh

@@ -13,10 +13,26 @@ The owner supplies provider credentials locally. Do not commit credentials, scre
 ```bash
 git checkout feature/live-desktop-evidence
 git pull --ff-only
+./scripts/install-demo-deps.sh
 ./scripts/stop-live-demo-stack.sh || true
 ```
 
 If another PromptGate process is on `127.0.0.1:8787`, stop it before starting the live stack. This avoids testing old code.
+
+To install project-local dependencies without installing GUI apps:
+
+```bash
+./scripts/install-demo-deps.sh --install
+```
+
+Optional GUI/tool installs, if missing:
+
+```bash
+brew install --cask cherry-studio
+brew install mitmproxy
+```
+
+Docker is preferred for the MITM helper, so local mitmproxy is optional.
 
 ## 2. Create Local Demo Values
 
