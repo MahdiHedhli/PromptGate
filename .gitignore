@@ -44,6 +44,7 @@ promptgate_codex_*.md
 
 # Reports and generated runtime evidence
 docs/reports/
+docs/agent-updates/
 reports/
 runtime/
 logs/
