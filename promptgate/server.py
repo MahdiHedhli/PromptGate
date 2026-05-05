@@ -151,6 +151,7 @@ async def _send_upstream(endpoint: str, payload: dict, mock_kind: str) -> dict:
             return await mock.anthropic_message(payload)
         return await mock.chat_completion(payload)
     if settings.provider_mode == "upstream":
+        payload = _upstream_payload(payload, settings.upstream_model)
         try:
             return await forward(
                 endpoint,
@@ -176,6 +177,7 @@ async def _send_upstream_stream(endpoint: str, payload: dict) -> AsyncIterator[b
             yield chunk
         return
     if settings.provider_mode == "upstream":
+        payload = _upstream_payload(payload, settings.upstream_model)
         try:
             async for chunk in forward_stream(
                 endpoint,
@@ -226,6 +228,14 @@ async def _mock_chat_stream(payload: dict) -> AsyncIterator[bytes]:
 def _sse_error(message: str) -> bytes:
     payload = {"error": {"message": message}}
     return f"data: {json.dumps(payload, separators=(',', ':'))}\n\n".encode("utf-8")
+
+
+def _upstream_payload(payload: dict, upstream_model: str) -> dict:
+    if not upstream_model or "model" not in payload:
+        return payload
+    rewritten = dict(payload)
+    rewritten["model"] = upstream_model
+    return rewritten
 
 
 def _safe_upstream_error(exc: httpx.HTTPError) -> str:

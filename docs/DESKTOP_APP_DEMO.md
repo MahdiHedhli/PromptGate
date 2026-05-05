@@ -92,6 +92,8 @@ In Cherry Studio, add a custom provider:
 - API key: the local PromptGate auth token from `.env`, not the provider key
 - Model ID: `promptgate-live` or another model listed by `http://127.0.0.1:8787/v1/models`
 
+For real upstream demos, set `PROVIDER_MODEL` or `PROMPTGATE_UPSTREAM_MODEL` in `local/live-demo.env` to a real provider model such as `gpt-4o-mini`. PromptGate can expose friendly desktop model IDs like `promptgate-live` and rewrite them to the real provider model only after scanning.
+
 Cherry Studio sends OpenAI-compatible requests with `stream=true` during normal chat and provider checks. PromptGate scans, blocks, masks, or tokenizes the request before opening the upstream stream. The MVP does not restore tokens in streamed provider responses.
 
 Fallbacks if Cherry Studio cannot route through PromptGate:

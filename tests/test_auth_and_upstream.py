@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 import httpx
 
+from promptgate.providers.upstream import _request_config
 from promptgate.server import app
 
 
@@ -89,6 +90,7 @@ def test_upstream_forwarding_uses_rewritten_payload_and_hides_api_key(monkeypatc
     monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "upstream")
     monkeypatch.setenv("PROMPTGATE_UPSTREAM_BASE_URL", "http://127.0.0.1:9999")
     monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_MODEL", "gpt-real")
     monkeypatch.setenv("PROMPTGATE_UPSTREAM_HTTP_PROXY", "http://127.0.0.1:8080")
     monkeypatch.setenv("PROMPTGATE_UPSTREAM_CA_BUNDLE", "/tmp/fake-ca.pem")
     monkeypatch.setattr("promptgate.server.forward", local_fake_upstream)
@@ -96,7 +98,7 @@ def test_upstream_forwarding_uses_rewritten_payload_and_hides_api_key(monkeypatc
 
     response = TestClient(app).post(
         "/v1/chat/completions",
-        json={"messages": [{"content": "Email alice@example.com from 10.9.8.7"}]},
+        json={"model": "promptgate-live", "messages": [{"content": "Email alice@example.com from 10.9.8.7"}]},
         headers={"Authorization": "Bearer local_promptgate_key"},
     )
 
@@ -105,6 +107,7 @@ def test_upstream_forwarding_uses_rewritten_payload_and_hides_api_key(monkeypatc
     assert "alice@example.com" not in body
     assert "10.9.8.7" not in body
     assert "PRIVATE_EMAIL" in body
+    assert captured["payload"]["model"] == "gpt-real"
     assert captured["auth"] == "Bearer upstream-secret"
     assert captured["path"] == "/v1/chat/completions"
     assert captured["http_proxy"] == "http://127.0.0.1:8080"
@@ -113,6 +116,7 @@ def test_upstream_forwarding_uses_rewritten_payload_and_hides_api_key(monkeypatc
     assert "http://127.0.0.1:8080" not in caplog.text
 
     monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")
+    monkeypatch.delenv("PROMPTGATE_UPSTREAM_MODEL", raising=False)
 
 
 def test_upstream_streaming_uses_rewritten_payload_and_hides_api_key(monkeypatch, caplog):
@@ -129,12 +133,13 @@ def test_upstream_streaming_uses_rewritten_payload_and_hides_api_key(monkeypatch
     monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "upstream")
     monkeypatch.setenv("PROMPTGATE_UPSTREAM_BASE_URL", "http://127.0.0.1:9999")
     monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setenv("PROVIDER_MODEL", "gpt-real")
     monkeypatch.setattr("promptgate.server.forward_stream", local_fake_upstream_stream)
     caplog.set_level("INFO", logger="promptgate")
 
     response = TestClient(app).post(
         "/v1/chat/completions",
-        json={"stream": True, "messages": [{"content": "Email alice@example.com from 10.9.8.7"}]},
+        json={"model": "promptgate-live", "stream": True, "messages": [{"content": "Email alice@example.com from 10.9.8.7"}]},
         headers={"Authorization": "Bearer local_promptgate_key"},
     )
 
@@ -144,11 +149,13 @@ def test_upstream_streaming_uses_rewritten_payload_and_hides_api_key(monkeypatch
     assert "alice@example.com" not in body
     assert "10.9.8.7" not in body
     assert "PRIVATE_EMAIL" in body
+    assert captured["payload"]["model"] == "gpt-real"
     assert captured["auth"] == "Bearer upstream-secret"
     assert captured["path"] == "/v1/chat/completions"
     assert "upstream-secret" not in caplog.text
 
     monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")
+    monkeypatch.delenv("PROVIDER_MODEL", raising=False)
 
 
 def test_upstream_streaming_tls_error_is_sanitized(monkeypatch):
@@ -173,3 +180,11 @@ def test_upstream_streaming_tls_error_is_sanitized(monkeypatch):
     assert "upstream-secret" not in response.text
 
     monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")
+
+
+def test_upstream_base_url_accepts_versioned_or_root_base():
+    root_url, _, _ = _request_config("/v1/chat/completions", "https://api.openai.com", "key")
+    versioned_url, _, _ = _request_config("/v1/chat/completions", "https://api.openai.com/v1", "key")
+
+    assert root_url == "https://api.openai.com/v1/chat/completions"
+    assert versioned_url == "https://api.openai.com/v1/chat/completions"

@@ -118,9 +118,10 @@ Explicit upstream forwarding mode:
 PROMPTGATE_PROVIDER_MODE=upstream
 PROMPTGATE_UPSTREAM_BASE_URL=http://127.0.0.1:4000
 PROMPTGATE_UPSTREAM_API_KEY=<provider-key>
+PROVIDER_MODEL=<real-upstream-model-id>
 ```
 
-Real provider tests require explicit credentials. PromptGate does not log upstream API keys.
+Real provider tests require explicit credentials. `PROMPTGATE_UPSTREAM_BASE_URL` may be a root URL such as `https://api.openai.com` or a versioned URL such as `https://api.openai.com/v1`; PromptGate avoids duplicating `/v1`. PromptGate does not log upstream API keys.
 
 LiteLLM deployment path:
 

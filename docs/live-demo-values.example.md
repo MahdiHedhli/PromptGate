@@ -9,13 +9,17 @@ Use owner-controlled demo values only. Do not use customer data, employer data, 
 # PROMPTGATE_AUTH_TOKEN=
 
 DESKTOP_APP_NAME="Cherry Studio"
-PROVIDER_MODEL="promptgate-live"
+# Provider-facing model. This must be a real model ID accepted by the upstream provider.
+PROVIDER_MODEL="gpt-4o-mini"
+# Optional explicit alias. If set, this takes precedence over PROVIDER_MODEL.
+# PROMPTGATE_UPSTREAM_MODEL="gpt-4o-mini"
 
 # Real provider route. Owner supplies these locally.
 PROMPTGATE_PROVIDER_MODE=upstream
 PROMPTGATE_UPSTREAM_BASE_URL="https://api.provider.example/v1"
 PROMPTGATE_UPSTREAM_API_KEY="owner-supplied-provider-key"
-PROMPTGATE_MODEL_LIST="promptgate-live"
+# Models exposed to desktop apps. PromptGate rewrites these to PROVIDER_MODEL upstream.
+PROMPTGATE_MODEL_LIST="promptgate-live,gpt-4o-mini"
 
 # Owner-controlled demo values.
 DEMO_EMAIL="demo-alias@example.com"

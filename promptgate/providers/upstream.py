@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 import httpx
 
@@ -15,7 +15,7 @@ def _request_config(endpoint: str, base_url: str, api_key: str, http_proxy: str 
         raise UpstreamConfigError("PROMPTGATE_UPSTREAM_BASE_URL is required when provider mode is upstream")
     if not api_key:
         raise UpstreamConfigError("PROMPTGATE_UPSTREAM_API_KEY is required when provider mode is upstream")
-    url = urljoin(base_url.rstrip("/") + "/", endpoint.lstrip("/"))
+    url = _join_upstream_url(base_url, endpoint)
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     client_args = {"timeout": 60}
     if http_proxy:
@@ -23,6 +23,14 @@ def _request_config(endpoint: str, base_url: str, api_key: str, http_proxy: str 
     if ca_bundle:
         client_args["verify"] = ca_bundle
     return url, headers, client_args
+
+
+def _join_upstream_url(base_url: str, endpoint: str) -> str:
+    endpoint_path = endpoint.lstrip("/")
+    base_path = urlsplit(base_url).path.rstrip("/")
+    if base_path.endswith("/v1") and endpoint_path.startswith("v1/"):
+        endpoint_path = endpoint_path.removeprefix("v1/")
+    return urljoin(base_url.rstrip("/") + "/", endpoint_path)
 
 
 async def forward(endpoint: str, payload: dict, base_url: str, api_key: str, http_proxy: str = "", ca_bundle: str = "") -> dict:

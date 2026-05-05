@@ -64,6 +64,7 @@ Set these values in a private shell or ignored `.env` file:
 PROMPTGATE_PROVIDER_MODE=upstream
 PROMPTGATE_UPSTREAM_BASE_URL=<provider base url>
 PROMPTGATE_UPSTREAM_API_KEY=<owner supplied key>
+PROVIDER_MODEL=<real upstream model id>
 PROMPTGATE_UPSTREAM_HTTP_PROXY=http://127.0.0.1:8080
 PROMPTGATE_UPSTREAM_CA_BUNDLE=<path to mitmproxy CA if TLS verification requires it>
 ```

@@ -162,8 +162,8 @@ if [[ ! -f "local/live-demo.env" ]]; then
 # Fill this file with owner-only values before the live desktop demo.
 # Use docs/live-demo-values.example.md as the reference.
 PROMPTGATE_PROVIDER_MODE=upstream
-PROMPTGATE_MODEL_LIST=promptgate-live
-PROVIDER_MODEL=promptgate-live
+PROMPTGATE_MODEL_LIST=promptgate-live,gpt-4o-mini
+PROVIDER_MODEL=gpt-4o-mini
 EOF
   echo "Wrote placeholder local/live-demo.env. Fill provider credentials and demo values before running the live demo."
 fi

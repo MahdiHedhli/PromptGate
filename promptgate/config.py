@@ -11,6 +11,7 @@ class Settings:
     provider_mode: str
     upstream_base_url: str
     upstream_api_key: str
+    upstream_model: str
     upstream_http_proxy: str
     upstream_ca_bundle: str
     host: str
@@ -31,6 +32,7 @@ def current_settings() -> Settings:
         provider_mode=os.getenv("PROMPTGATE_PROVIDER_MODE", "mock"),
         upstream_base_url=os.getenv("PROMPTGATE_UPSTREAM_BASE_URL", ""),
         upstream_api_key=os.getenv("PROMPTGATE_UPSTREAM_API_KEY", ""),
+        upstream_model=os.getenv("PROMPTGATE_UPSTREAM_MODEL", os.getenv("PROVIDER_MODEL", "")),
         upstream_http_proxy=os.getenv("PROMPTGATE_UPSTREAM_HTTP_PROXY", ""),
         upstream_ca_bundle=os.getenv("PROMPTGATE_UPSTREAM_CA_BUNDLE", ""),
         host=os.getenv("PROMPTGATE_HOST", "127.0.0.1"),
