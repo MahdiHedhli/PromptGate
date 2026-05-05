@@ -34,7 +34,7 @@ rm -f "$runtime_dir/requests.jsonl" "$runtime_dir/promptgate-live.flows"
 gateway_port="${PROMPTGATE_PORT:-8787}"
 proxy_port="${PROMPTGATE_LIVE_MITM_PROXY_PORT:-8899}"
 web_port="${PROMPTGATE_LIVE_MITMWEB_PORT:-8897}"
-web_password="${PROMPTGATE_LIVE_MITMWEB_PASSWORD:-promptgate-local}"
+web_password="$(printf '%s' "${PROMPTGATE_LIVE_MITMWEB_PASSWORD:-promptgate-local}" | tr -d '\r\n')"
 
 if lsof -nP -iTCP:"$gateway_port" -sTCP:LISTEN >/dev/null 2>&1; then
   echo "FAIL: 127.0.0.1:${gateway_port} is already in use. Stop the old PromptGate process before starting the live stack." >&2
