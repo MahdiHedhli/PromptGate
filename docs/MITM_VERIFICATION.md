@@ -93,7 +93,7 @@ Never paste real provider keys into docs, reports, screenshots, or GitHub issues
 
 ### Troubleshooting
 
-- TLS certificate trust problems: use mitmproxy's generated CA and set `PROMPTGATE_UPSTREAM_CA_BUNDLE` if the provider client requires a custom CA bundle.
+- TLS certificate trust problems: with `./scripts/start-live-demo-stack.sh`, the Docker mitmproxy CA is mounted under ignored `local/runtime/live-demo/mitmproxy/` and `PROMPTGATE_UPSTREAM_CA_BUNDLE` is set automatically unless already configured. For manual mitmproxy runs, use mitmproxy's generated CA and set `PROMPTGATE_UPSTREAM_CA_BUNDLE`.
 - Provider 401: verify the owner-supplied provider key in the local shell only.
 - HTTP proxy not used: confirm `PROMPTGATE_UPSTREAM_HTTP_PROXY` is set in the environment that launches PromptGate.
 - mitmweb shows only local client traffic: ensure PromptGate is in `upstream` mode and the upstream HTTP proxy env var is set.

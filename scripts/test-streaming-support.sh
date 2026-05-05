@@ -8,7 +8,7 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-port="${PROMPTGATE_PORT:-8787}"
+port="${PROMPTGATE_STREAMING_TEST_PORT:-8796}"
 token="${PROMPTGATE_AUTH_TOKEN:-}"
 gateway_pid=""
 
@@ -27,21 +27,25 @@ cleanup() {
 }
 trap cleanup EXIT
 
+if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "FAIL: streaming support test port ${port} is already in use" >&2
+  lsof -nP -iTCP:"$port" -sTCP:LISTEN >&2
+  exit 1
+fi
+
+py="${PYTHON:-}"
+if [[ -z "$py" && -x ".venv/bin/python" ]]; then py=".venv/bin/python"; fi
+if [[ -z "$py" ]]; then py="$(command -v python3.12 || command -v python3.11 || command -v python3)"; fi
+PROMPTGATE_PROVIDER_MODE=mock "$py" -m uvicorn promptgate.server:app --host 127.0.0.1 --port "$port" >/tmp/promptgate-streaming-support.log 2>&1 &
+gateway_pid="$!"
+for _ in {1..40}; do
+  curl -fsS "http://127.0.0.1:${port}/health" >/dev/null 2>&1 && break
+  sleep 0.25
+done
 if ! curl -fsS "http://127.0.0.1:${port}/health" >/dev/null 2>&1; then
-  py="${PYTHON:-}"
-  if [[ -z "$py" && -x ".venv/bin/python" ]]; then py=".venv/bin/python"; fi
-  if [[ -z "$py" ]]; then py="$(command -v python3.12 || command -v python3.11 || command -v python3)"; fi
-  "$py" -m uvicorn promptgate.server:app --host 127.0.0.1 --port "$port" >/tmp/promptgate-streaming-support.log 2>&1 &
-  gateway_pid="$!"
-  for _ in {1..40}; do
-    curl -fsS "http://127.0.0.1:${port}/health" >/dev/null 2>&1 && break
-    sleep 0.25
-  done
-  if ! curl -fsS "http://127.0.0.1:${port}/health" >/dev/null 2>&1; then
-    echo "FAIL: PromptGate did not start for streaming support test" >&2
-    sed -E 's/(Bearer )[A-Za-z0-9._-]+/\1[REDACTED]/g' /tmp/promptgate-streaming-support.log >&2 || true
-    exit 1
-  fi
+  echo "FAIL: PromptGate did not start for streaming support test" >&2
+  sed -E 's/(Bearer )[A-Za-z0-9._-]+/\1[REDACTED]/g' /tmp/promptgate-streaming-support.log >&2 || true
+  exit 1
 fi
 
 curl -fsS -X POST "http://127.0.0.1:${port}/mock/reset" >/dev/null

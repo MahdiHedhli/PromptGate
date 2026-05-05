@@ -27,7 +27,8 @@ if [[ -z "$py" && -x ".venv/bin/python" ]]; then py=".venv/bin/python"; fi
 if [[ -z "$py" ]]; then py="$(command -v python3.12 || command -v python3.11 || command -v python3)"; fi
 
 runtime_dir="local/runtime/live-demo"
-mkdir -p "$runtime_dir"
+mitm_ca_dir="$runtime_dir/mitmproxy"
+mkdir -p "$runtime_dir" "$mitm_ca_dir"
 rm -f "$runtime_dir/requests.jsonl" "$runtime_dir/promptgate-live.flows"
 
 gateway_port="${PROMPTGATE_PORT:-8787}"
@@ -46,6 +47,7 @@ if command -v docker >/dev/null 2>&1; then
     -p "127.0.0.1:${proxy_port}:8080" \
     -p "127.0.0.1:${web_port}:8081" \
     -v "$PWD/${runtime_dir}:/captures" \
+    -v "$PWD/${mitm_ca_dir}:/home/mitmproxy/.mitmproxy" \
     -v "$PWD/scripts/mitm_capture_addon.py:/addons/mitm_capture_addon.py:ro" \
     mitmproxy/mitmproxy:latest \
     mitmweb --web-host 0.0.0.0 --web-port 8081 --listen-host 0.0.0.0 --listen-port 8080 \
@@ -53,6 +55,15 @@ if command -v docker >/dev/null 2>&1; then
 else
   echo "FAIL: Docker is required by this helper. Install Docker or start mitmweb manually using docs/DESKTOP_APP_DEMO.md." >&2
   exit 1
+fi
+
+mitm_ca_bundle="$PWD/${mitm_ca_dir}/mitmproxy-ca-cert.pem"
+for _ in {1..80}; do
+  [[ -s "$mitm_ca_bundle" ]] && break
+  sleep 0.25
+done
+if [[ -z "${PROMPTGATE_UPSTREAM_CA_BUNDLE:-}" && -s "$mitm_ca_bundle" ]]; then
+  export PROMPTGATE_UPSTREAM_CA_BUNDLE="$mitm_ca_bundle"
 fi
 
 PROMPTGATE_UPSTREAM_HTTP_PROXY="http://127.0.0.1:${proxy_port}" \

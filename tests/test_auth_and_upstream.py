@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+import httpx
 
 from promptgate.server import app
 
@@ -146,5 +147,29 @@ def test_upstream_streaming_uses_rewritten_payload_and_hides_api_key(monkeypatch
     assert captured["auth"] == "Bearer upstream-secret"
     assert captured["path"] == "/v1/chat/completions"
     assert "upstream-secret" not in caplog.text
+
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")
+
+
+def test_upstream_streaming_tls_error_is_sanitized(monkeypatch):
+    async def failing_upstream_stream(endpoint, payload, base_url, api_key, http_proxy="", ca_bundle=""):
+        raise httpx.ConnectError("[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed")
+        yield b""
+
+    monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "upstream")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_BASE_URL", "https://api.example.test")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setattr("promptgate.server.forward_stream", failing_upstream_stream)
+
+    response = TestClient(app).post(
+        "/v1/chat/completions",
+        json={"stream": True, "messages": [{"content": "hello"}]},
+        headers={"Authorization": "Bearer local_promptgate_key"},
+    )
+
+    assert response.status_code == 200
+    assert "PROMPTGATE_UPSTREAM_CA_BUNDLE" in response.text
+    assert "upstream-secret" not in response.text
 
     monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")

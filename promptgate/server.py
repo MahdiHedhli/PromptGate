@@ -4,6 +4,7 @@ import json
 import logging
 from collections.abc import AsyncIterator
 
+import httpx
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 
@@ -161,6 +162,10 @@ async def _send_upstream(endpoint: str, payload: dict, mock_kind: str) -> dict:
             )
         except UpstreamConfigError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
+        except httpx.HTTPStatusError as exc:
+            raise HTTPException(status_code=exc.response.status_code, detail="upstream provider returned an error") from exc
+        except httpx.HTTPError as exc:
+            raise HTTPException(status_code=502, detail=_safe_upstream_error(exc)) from exc
     raise HTTPException(status_code=503, detail="invalid PROMPTGATE_PROVIDER_MODE")
 
 
@@ -184,6 +189,14 @@ async def _send_upstream_stream(endpoint: str, payload: dict) -> AsyncIterator[b
             return
         except UpstreamConfigError as exc:
             yield _sse_error(str(exc))
+            return
+        except httpx.HTTPStatusError as exc:
+            yield _sse_error(f"upstream provider returned HTTP {exc.response.status_code}")
+            yield b"data: [DONE]\n\n"
+            return
+        except httpx.HTTPError as exc:
+            yield _sse_error(_safe_upstream_error(exc))
+            yield b"data: [DONE]\n\n"
             return
     yield _sse_error("invalid PROMPTGATE_PROVIDER_MODE")
 
@@ -213,3 +226,9 @@ async def _mock_chat_stream(payload: dict) -> AsyncIterator[bytes]:
 def _sse_error(message: str) -> bytes:
     payload = {"error": {"message": message}}
     return f"data: {json.dumps(payload, separators=(',', ':'))}\n\n".encode("utf-8")
+
+
+def _safe_upstream_error(exc: httpx.HTTPError) -> str:
+    if isinstance(exc, httpx.ConnectError) and "CERTIFICATE_VERIFY_FAILED" in str(exc):
+        return "upstream TLS verification failed; configure PROMPTGATE_UPSTREAM_CA_BUNDLE for the MITM demo"
+    return f"upstream request failed: {exc.__class__.__name__}"

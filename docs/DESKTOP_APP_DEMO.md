@@ -77,8 +77,9 @@ The script starts:
 - OpenAI-compatible app base URL at `http://127.0.0.1:8787/v1`
 - mitmweb on `http://127.0.0.1:8897`
 - MITM capture files under ignored `local/runtime/live-demo/`
+- mitmproxy CA material under ignored `local/runtime/live-demo/mitmproxy/`
 
-If the real upstream uses HTTPS and certificate verification fails, configure the mitmproxy CA path through `PROMPTGATE_UPSTREAM_CA_BUNDLE` in `local/live-demo.env`.
+For the Docker MITM path, the script mounts mitmproxy CA material locally and automatically sets `PROMPTGATE_UPSTREAM_CA_BUNDLE` for PromptGate unless you already set one in `local/live-demo.env`.
 
 ## 5. Configure Cherry Studio
 
