@@ -12,8 +12,7 @@ python3.12 -m venv .venv || python3.11 -m venv .venv
 cp .env.example .env
 ./scripts/setup-local-key.sh
 ./scripts/init-policy.sh security_consulting
-set -a; source .env; set +a
-.venv/bin/python -m uvicorn promptgate.server:app --host 127.0.0.1 --port 8787
+./scripts/run-promptgate-local.sh
 ```
 
 In another terminal:

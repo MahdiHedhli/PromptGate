@@ -57,6 +57,16 @@ Warnings about missing provider credentials are expected until the owner fills `
 
 ## 4. Start MITM And PromptGate
 
+For local mock-provider Cherry Studio testing without real provider credentials, run PromptGate in the foreground:
+
+```bash
+./scripts/run-promptgate-local.sh
+```
+
+Leave that terminal open while Cherry Studio is connected to `http://127.0.0.1:8787/v1`.
+
+For the owner-visible real-provider MITM demo, use:
+
 ```bash
 ./scripts/start-live-demo-stack.sh
 ```
