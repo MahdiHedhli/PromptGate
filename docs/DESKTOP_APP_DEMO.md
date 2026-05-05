@@ -76,6 +76,7 @@ The script starts:
 - PromptGate on `http://127.0.0.1:8787`
 - OpenAI-compatible app base URL at `http://127.0.0.1:8787/v1`
 - mitmweb on `http://127.0.0.1:8897`
+- mitmweb password `promptgate-local` by default, or `PROMPTGATE_LIVE_MITMWEB_PASSWORD` if overridden
 - MITM capture files under ignored `local/runtime/live-demo/`
 - mitmproxy CA material under ignored `local/runtime/live-demo/mitmproxy/`
 

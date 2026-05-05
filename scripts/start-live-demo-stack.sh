@@ -34,6 +34,7 @@ rm -f "$runtime_dir/requests.jsonl" "$runtime_dir/promptgate-live.flows"
 gateway_port="${PROMPTGATE_PORT:-8787}"
 proxy_port="${PROMPTGATE_LIVE_MITM_PROXY_PORT:-8899}"
 web_port="${PROMPTGATE_LIVE_MITMWEB_PORT:-8897}"
+web_password="${PROMPTGATE_LIVE_MITMWEB_PASSWORD:-promptgate-local}"
 
 if lsof -nP -iTCP:"$gateway_port" -sTCP:LISTEN >/dev/null 2>&1; then
   echo "FAIL: 127.0.0.1:${gateway_port} is already in use. Stop the old PromptGate process before starting the live stack." >&2
@@ -51,7 +52,8 @@ if command -v docker >/dev/null 2>&1; then
     -v "$PWD/scripts/mitm_capture_addon.py:/addons/mitm_capture_addon.py:ro" \
     mitmproxy/mitmproxy:latest \
     mitmweb --web-host 0.0.0.0 --web-port 8081 --listen-host 0.0.0.0 --listen-port 8080 \
-      --set block_global=false -s /addons/mitm_capture_addon.py -w /captures/promptgate-live.flows >/dev/null
+      --set block_global=false --set "web_password=${web_password}" \
+      -s /addons/mitm_capture_addon.py -w /captures/promptgate-live.flows >/dev/null
 else
   echo "FAIL: Docker is required by this helper. Install Docker or start mitmweb manually using docs/DESKTOP_APP_DEMO.md." >&2
   exit 1
@@ -80,5 +82,6 @@ echo "PromptGate live demo stack started."
 echo "PromptGate: http://127.0.0.1:${gateway_port}"
 echo "OpenAI-compatible base URL for Cherry Studio: http://127.0.0.1:${gateway_port}/v1"
 echo "mitmweb: http://127.0.0.1:${web_port}"
+echo "mitmweb password: ${web_password}"
 echo "Local runtime evidence: ${runtime_dir}"
 echo "No secrets were printed."
