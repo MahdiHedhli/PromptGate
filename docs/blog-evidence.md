@@ -9,7 +9,7 @@ Provider modes: mock, direct upstream, LiteLLM route shape, MITM fake upstream.
 
 ## Test Evidence Chain
 
-1. `pytest` verifies policy validation, auth, extraction, rewriting, normalization, and streaming rejection.
+1. `pytest` verifies policy validation, auth, extraction, rewriting, normalization, and scan-before-stream behavior.
 2. `test-egress.sh` proves the mock provider receives placeholders and blocked secrets do not forward.
 3. `test-direct-upstream.sh` proves direct upstream mode receives rewritten payloads only.
 4. `test-litellm-route.sh` proves the local LiteLLM/provider route shape with rewritten payloads only.

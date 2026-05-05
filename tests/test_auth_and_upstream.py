@@ -112,3 +112,39 @@ def test_upstream_forwarding_uses_rewritten_payload_and_hides_api_key(monkeypatc
     assert "http://127.0.0.1:8080" not in caplog.text
 
     monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")
+
+
+def test_upstream_streaming_uses_rewritten_payload_and_hides_api_key(monkeypatch, caplog):
+    captured = {}
+
+    async def local_fake_upstream_stream(endpoint, payload, base_url, api_key, http_proxy="", ca_bundle=""):
+        captured["path"] = endpoint
+        captured["auth"] = f"Bearer {api_key}"
+        captured["payload"] = payload
+        yield b'data: {"choices":[{"delta":{"content":"ok"}}]}\n\n'
+        yield b"data: [DONE]\n\n"
+
+    monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "upstream")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_BASE_URL", "http://127.0.0.1:9999")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setattr("promptgate.server.forward_stream", local_fake_upstream_stream)
+    caplog.set_level("INFO", logger="promptgate")
+
+    response = TestClient(app).post(
+        "/v1/chat/completions",
+        json={"stream": True, "messages": [{"content": "Email alice@example.com from 10.9.8.7"}]},
+        headers={"Authorization": "Bearer local_promptgate_key"},
+    )
+
+    assert response.status_code == 200
+    assert "data: [DONE]" in response.text
+    body = str(captured["payload"])
+    assert "alice@example.com" not in body
+    assert "10.9.8.7" not in body
+    assert "PRIVATE_EMAIL" in body
+    assert captured["auth"] == "Bearer upstream-secret"
+    assert captured["path"] == "/v1/chat/completions"
+    assert "upstream-secret" not in caplog.text
+
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")

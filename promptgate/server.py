@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import json
 import logging
+from collections.abc import AsyncIterator
 
 from fastapi import FastAPI, Header, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from promptgate.config import current_settings
 from promptgate.gateway import process_payload
 from promptgate.policy import load_policy
 from promptgate.providers import mock
-from promptgate.providers.upstream import UpstreamConfigError, forward
+from promptgate.providers.upstream import UpstreamConfigError, forward, forward_stream
 from promptgate.redact import TokenVault
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -102,24 +104,25 @@ async def mock_reset() -> dict:
 
 
 @app.post("/v1/chat/completions")
-async def chat_completions(payload: dict, authorization: str | None = Header(default=None)) -> JSONResponse:
+async def chat_completions(payload: dict, authorization: str | None = Header(default=None)):
     return await _chat_completions_impl(payload, authorization)
 
 
 @app.post("/chat/completions")
-async def chat_completions_unversioned(payload: dict, authorization: str | None = Header(default=None)) -> JSONResponse:
+async def chat_completions_unversioned(payload: dict, authorization: str | None = Header(default=None)):
     return await _chat_completions_impl(payload, authorization)
 
 
-async def _chat_completions_impl(payload: dict, authorization: str | None) -> JSONResponse:
+async def _chat_completions_impl(payload: dict, authorization: str | None) -> JSONResponse | StreamingResponse:
     _authorize(authorization)
     result = process_payload(payload, _policy(), vault)
     if not result.allowed:
         return JSONResponse(status_code=400, content={"error": {"message": "PromptGate blocked sensitive content", "categories": result.blocked_categories}})
     if payload.get("stream") is True:
-        return JSONResponse(
-            status_code=400,
-            content={"error": {"message": "PromptGate 0.1.0 rejects streaming requests safely; set stream=false or omit stream."}},
+        return StreamingResponse(
+            _send_upstream_stream("/v1/chat/completions", result.payload),
+            media_type="text/event-stream",
+            headers={"x-promptgate-findings": str(len(result.audit))},
         )
     response = await _send_upstream("/v1/chat/completions", result.payload, "chat")
     return JSONResponse(content=response, headers={"x-promptgate-findings": str(len(result.audit))})
@@ -134,7 +137,7 @@ async def anthropic_messages(payload: dict, x_api_key: str | None = Header(defau
     if payload.get("stream") is True:
         return JSONResponse(
             status_code=400,
-            content={"type": "error", "error": {"message": "PromptGate 0.1.0 rejects streaming requests safely; set stream=false or omit stream."}},
+            content={"type": "error", "error": {"message": "PromptGate 0.1.0 rejects Anthropic streaming requests safely; set stream=false or omit stream."}},
         )
     response = await _send_upstream("/v1/messages", result.payload, "anthropic")
     return JSONResponse(content=response, headers={"x-promptgate-findings": str(len(result.audit))})
@@ -159,3 +162,54 @@ async def _send_upstream(endpoint: str, payload: dict, mock_kind: str) -> dict:
         except UpstreamConfigError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
     raise HTTPException(status_code=503, detail="invalid PROMPTGATE_PROVIDER_MODE")
+
+
+async def _send_upstream_stream(endpoint: str, payload: dict) -> AsyncIterator[bytes]:
+    settings = current_settings()
+    if settings.provider_mode == "mock":
+        async for chunk in _mock_chat_stream(payload):
+            yield chunk
+        return
+    if settings.provider_mode == "upstream":
+        try:
+            async for chunk in forward_stream(
+                endpoint,
+                payload,
+                settings.upstream_base_url,
+                settings.upstream_api_key,
+                settings.upstream_http_proxy,
+                settings.upstream_ca_bundle,
+            ):
+                yield chunk
+            return
+        except UpstreamConfigError as exc:
+            yield _sse_error(str(exc))
+            return
+    yield _sse_error("invalid PROMPTGATE_PROVIDER_MODE")
+
+
+async def _mock_chat_stream(payload: dict) -> AsyncIterator[bytes]:
+    await mock.chat_completion(payload)
+    model = payload.get("model", "mock")
+    chunk = {
+        "id": "promptgate-mock-stream",
+        "object": "chat.completion.chunk",
+        "created": 0,
+        "model": model,
+        "choices": [{"index": 0, "delta": {"content": "mock response"}, "finish_reason": None}],
+    }
+    done = {
+        "id": "promptgate-mock-stream",
+        "object": "chat.completion.chunk",
+        "created": 0,
+        "model": model,
+        "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+    }
+    yield f"data: {json.dumps(chunk, separators=(',', ':'))}\n\n".encode("utf-8")
+    yield f"data: {json.dumps(done, separators=(',', ':'))}\n\n".encode("utf-8")
+    yield b"data: [DONE]\n\n"
+
+
+def _sse_error(message: str) -> bytes:
+    payload = {"error": {"message": message}}
+    return f"data: {json.dumps(payload, separators=(',', ':'))}\n\n".encode("utf-8")

@@ -47,11 +47,26 @@ def test_logs_do_not_contain_raw_sensitive_values(caplog):
     assert "alice@example.com" not in caplog.text
 
 
-def test_streaming_rejected_without_forwarding():
+def test_streaming_request_is_sanitized_before_forwarding():
     client = TestClient(app)
     mock.reset()
-    payload = {"model": "mock", "stream": True, "messages": [{"role": "user", "content": "Email alice@example.com"}]}
+    payload = {"model": "mock", "stream": True, "messages": [{"role": "user", "content": "Email alice@example.com from 10.1.2.3"}]}
+    response = client.post("/v1/chat/completions", json=payload, headers={"Authorization": "Bearer local_promptgate_key"})
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    assert "data: [DONE]" in response.text
+    body = str(mock.received())
+    assert "alice@example.com" not in body
+    assert "10.1.2.3" not in body
+    assert "PRIVATE_EMAIL" in body
+    assert "IP_ADDRESS" in body
+
+
+def test_streaming_secret_is_blocked_before_forwarding():
+    client = TestClient(app)
+    mock.reset()
+    payload = {"model": "mock", "stream": True, "messages": [{"role": "user", "content": "Use sk-abc1234567890SECRET"}]}
     response = client.post("/v1/chat/completions", json=payload, headers={"Authorization": "Bearer local_promptgate_key"})
     assert response.status_code == 400
-    assert "streaming" in response.text
+    assert "blocked" in response.text.lower()
     assert mock.received() == []

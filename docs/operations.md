@@ -27,7 +27,7 @@ Doctor checks policy validity, auth mode, provider mode, upstream config, raw pr
 
 ## Streaming
 
-PromptGate 0.1.0 rejects `stream=true` safely. Requests are scanned first; if they are otherwise allowed, the gateway returns a clear local error before forwarding. This prevents streaming from becoming an unscanned bypass.
+PromptGate 0.1.0 supports OpenAI-compatible `stream=true` for `/v1/chat/completions`. Requests are authenticated, scanned, policy-evaluated, and rewritten before the upstream stream is opened. Blocked requests return a local error and do not create an upstream request. The MVP does not restore tokenized values inside streamed provider responses.
 
 ## Tokenization
 

@@ -9,7 +9,7 @@ if [[ -z "$py" ]]; then py="$(command -v python3.12 || command -v python3.11 || 
 ./scripts/test-direct-upstream.sh
 ./scripts/test-litellm-route.sh
 ./scripts/test-mitm-fake-upstream.sh
-./scripts/test-streaming-rejection.sh
+./scripts/test-streaming-support.sh
 ./scripts/benchmark-local.py
 ./scripts/export-report.sh
 ./scripts/replay-audit-fixtures.sh

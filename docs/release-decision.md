@@ -38,7 +38,7 @@ Status: Yellow pending owner real-provider visual MITM verification. Automated l
 
 - Real provider MITM requires owner credentials and visual verification.
 - Live desktop app proof requires owner GUI actions and provider credentials.
-- Cherry Studio is the primary documented target. If it cannot disable streaming or route to an OpenAI-compatible base URL in the owner environment, use the documented fallback list and record why.
+- Cherry Studio is the primary documented target. PromptGate now supports its OpenAI-compatible streamed chat path by scanning and rewriting the request before upstream streaming. If Cherry Studio cannot route to an OpenAI-compatible base URL in the owner environment, use the documented fallback list and record why.
 - Privacy Filter local service is optional and mock/test oriented unless the owner enables a real service.
 - Browser ChatGPT, SaaS IDE backends, vendor-managed indexes, file/image uploads, and agentic browser actions are outside the local API gateway path.
 - Response token restoration is intentionally off by default.

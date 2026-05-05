@@ -30,7 +30,7 @@ Loopback client-to-PromptGate traffic is trusted only as local operator traffic 
 - Secret leakage through prompts, tool outputs, metadata, or nested arguments.
 - Infrastructure disclosure such as internal domains and IP addresses.
 - Basic obfuscated sensitive text, including separator-heavy values, leetspeak, zero-width characters, and normalized email patterns.
-- Streaming bypass in the MVP by rejecting `stream=true` safely before upstream forwarding.
+- Streaming bypass by scanning and rewriting OpenAI-compatible streamed requests before the upstream stream is opened.
 
 ## Does Not Defend Against
 

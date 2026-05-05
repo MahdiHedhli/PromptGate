@@ -78,7 +78,7 @@ Expected result: mitmproxy capture under `local/runtime/mitm/` contains placehol
 Recommended:
 
 ```bash
-./scripts/test-streaming-rejection.sh
+./scripts/test-streaming-support.sh
 ```
 
 Manual equivalent:
@@ -94,7 +94,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \
   -d '{"model":"mock","stream":true,"messages":[{"role":"user","content":"hello"}]}'
 ```
 
-Expected result: local 400 response explaining that streaming is rejected safely in 0.1.0.
+Expected result: an authenticated `text/event-stream` response ending in `data: [DONE]`. PromptGate scans and rewrites the request before opening the upstream stream. Blocked secrets still return a local 400 and create no upstream request.
 
 ## 9. Release Gates
 

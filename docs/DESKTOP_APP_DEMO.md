@@ -80,7 +80,7 @@ In Cherry Studio, add a custom provider:
 - API key: the local PromptGate auth token from `.env`, not the provider key
 - Model ID: `promptgate-live` or another model listed by `http://127.0.0.1:8787/v1/models`
 
-If Cherry Studio has a streaming option, disable streaming for the MVP demo. PromptGate rejects `stream=true` safely if the app sends it.
+Cherry Studio sends OpenAI-compatible requests with `stream=true` during normal chat and provider checks. PromptGate scans, blocks, masks, or tokenizes the request before opening the upstream stream. The MVP does not restore tokens in streamed provider responses.
 
 Fallbacks if Cherry Studio cannot route through PromptGate:
 
