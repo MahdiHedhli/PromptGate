@@ -90,11 +90,11 @@ In Cherry Studio, add a custom provider:
 - Provider type: `OpenAI`
 - API address/Base URL: `http://127.0.0.1:8787/v1`
 - API key: the local PromptGate auth token from `.env`, not the provider key
-- Model ID: `promptgate-live` or another model listed by `http://127.0.0.1:8787/v1/models`
+- Model ID: `promptgate-live` for translation OFF or `promptgate-live-translate` for translation ON
 
 For real upstream demos, set `PROVIDER_MODEL` or `PROMPTGATE_UPSTREAM_MODEL` in `local/live-demo.env` to a real provider model such as `gpt-4o-mini`. PromptGate can expose friendly desktop model IDs like `promptgate-live` and rewrite them to the real provider model only after scanning.
 
-Cherry Studio sends OpenAI-compatible requests with `stream=true` during normal chat and provider checks. PromptGate scans, blocks, masks, or tokenizes the request before opening the upstream stream. The MVP does not restore tokens in streamed provider responses.
+Cherry Studio sends OpenAI-compatible requests with `stream=true` during normal chat and provider checks. PromptGate scans, blocks, masks, or tokenizes the request before opening the upstream stream. Response token translation is optional: `promptgate-live` returns placeholders to the desktop app, while `promptgate-live-translate` translates known scoped response tokens back to local controlled values after the provider response is received.
 
 Fallbacks if Cherry Studio cannot route through PromptGate:
 
@@ -109,26 +109,29 @@ Do not switch apps silently. Record the reason in the demo notes.
 Before GUI screenshots:
 
 ```bash
-./scripts/live-demo-curl-allowed.sh
+./scripts/live-demo-curl-allowed.sh --translate off
+./scripts/live-demo-curl-allowed.sh --translate on
+./scripts/assert-live-demo-translation.sh
 ./scripts/assert-live-demo-no-raw-leaks.sh
 ./scripts/live-demo-curl-blocked.sh
 ```
 
-The allowed script verifies provider reachability through PromptGate. The blocked script verifies the canary secret is blocked before upstream egress.
+The allowed script verifies provider reachability through PromptGate in both translation modes. The translation assertion checks that the OFF response contains placeholders, the ON response restores local controlled values, and MITM upstream captures remain tokenized. The blocked script verifies the canary secret is blocked before upstream egress.
 
 ## 7. Run Desktop GUI Prompts
 
 Use `docs/blog-assets/live-desktop-demo-prompt-template.md`.
 
-1. Send the allowed redaction/tokenization prompt.
-2. Screenshot the desktop app input.
-3. Screenshot the desktop app response.
-4. Open mitmweb.
-5. Screenshot the upstream provider request body showing placeholders only.
-6. Confirm raw demo email, IP, internal domain, and codename are absent upstream.
-7. Send the blocked-secret prompt.
-8. Screenshot the desktop app block/error response.
-9. Confirm no upstream provider request was created for the blocked prompt.
+1. Select `promptgate-live` and send the allowed prompt.
+2. Screenshot the response showing placeholders.
+3. Open mitmweb and screenshot the upstream request body showing placeholders only.
+4. Select `promptgate-live-translate` and send the same allowed prompt.
+5. Screenshot the response showing restored local controlled values.
+6. Open mitmweb and screenshot the upstream request body still showing placeholders only.
+7. Confirm raw demo email, IP, internal domain, and codename are absent upstream in both modes.
+8. Send the blocked-secret prompt.
+9. Screenshot the desktop app block/error response.
+10. Confirm no upstream provider request was created for the blocked prompt.
 
 ## 8. Safety
 

@@ -70,6 +70,8 @@ Secrets default to `block`. PII and infrastructure default to `mask` or `tokeniz
 
 Tokenization defaults to per-conversation scoped random placeholders with TTL/LRU eviction. Deterministic sequential placeholders remain available for demos and reproducible tests by setting `tokenization.mode: deterministic`.
 
+Response token translation, also called response token restoration, is disabled by default. For demos, `promptgate-live` returns placeholders to the desktop app, while `promptgate-live-translate` translates known scoped response tokens back to local controlled values after the provider response is received. In both modes, the upstream provider receives only placeholders.
+
 ## Benchmark Notes
 
 AI4Privacy PII-Masking-300k is referenced as an external benchmark option only. It is not included in this repository. Review and comply with the dataset license before using it, especially for commercial, redistributed, derivative, or training use.

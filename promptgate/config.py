@@ -14,6 +14,7 @@ class Settings:
     upstream_model: str
     upstream_http_proxy: str
     upstream_ca_bundle: str
+    response_token_translation: bool
     host: str
     port: int
     local_auth_token: str
@@ -35,6 +36,7 @@ def current_settings() -> Settings:
         upstream_model=os.getenv("PROMPTGATE_UPSTREAM_MODEL", os.getenv("PROVIDER_MODEL", "")),
         upstream_http_proxy=os.getenv("PROMPTGATE_UPSTREAM_HTTP_PROXY", ""),
         upstream_ca_bundle=os.getenv("PROMPTGATE_UPSTREAM_CA_BUNDLE", ""),
+        response_token_translation=os.getenv("PROMPTGATE_RESPONSE_TOKEN_TRANSLATION", "false").lower() in {"1", "true", "yes"},
         host=os.getenv("PROMPTGATE_HOST", "127.0.0.1"),
         port=int(os.getenv("PROMPTGATE_PORT", "8787")),
         local_auth_token=os.getenv("PROMPTGATE_AUTH_TOKEN", ""),

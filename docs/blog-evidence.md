@@ -27,10 +27,11 @@ Cherry Studio -> PromptGate -> mitmweb -> real provider
 Owner-only evidence:
 
 1. Desktop app allowed prompt with real PromptGate project context and owner-controlled demo values.
-2. Desktop app model response.
-3. mitmweb upstream request body showing placeholders only.
-4. Blocked canary-secret prompt returning a local PromptGate error.
-5. mitmweb request list showing no new upstream request for the blocked prompt.
+2. Translation OFF desktop response from `promptgate-live` showing placeholders.
+3. Translation ON desktop response from `promptgate-live-translate` showing restored local controlled values.
+4. mitmweb upstream request bodies for both modes showing placeholders only.
+5. Blocked canary-secret prompt returning a local PromptGate error.
+6. mitmweb request list showing no new upstream request for the blocked prompt.
 
 ## Expected Redacted Upstream Body
 
@@ -69,6 +70,6 @@ Owner-only evidence:
 
 - Browser ChatGPT is not intercepted by this local API gateway.
 - SaaS IDE backends and vendor-managed code indexes are not automatically covered.
-- Streaming is rejected safely in 0.1.0 rather than proxied.
+- OpenAI-compatible streaming is proxied after scan/rewrite; response token translation is explicit and off by default.
 - Real Privacy Filter model integration remains optional and mockable.
 - Production LiteLLM routing should be tested against the owner's deployment before public claims.

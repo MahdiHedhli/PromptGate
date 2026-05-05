@@ -17,35 +17,47 @@ done
 runtime_dir="local/runtime/live-demo"
 mkdir -p "$runtime_dir"
 port="${PROMPTGATE_PORT:-8787}"
-model="${PROVIDER_MODEL:-promptgate-live}"
+translation="off"
+if [[ "${1:-}" == "--translate" ]]; then
+  translation="${2:-}"
+fi
+case "$translation" in
+  off) model="promptgate-live" ;;
+  on) model="promptgate-live-translate" ;;
+  *) echo "FAIL: use --translate off or --translate on" >&2; exit 1 ;;
+esac
 
-prompt="I'm reviewing this PromptGate policy and threat model excerpt before publishing the MVP.
+prompt="I am testing a local AI DLP gateway called PromptGate.
+
+Use the exact values I provide below when summarizing. Do not invent replacements.
 
 Context from the real repo:
 ${DEMO_PROMPT_CONTEXT}
 
-Please summarize the risk and suggest what to test next.
+Task:
+1. Summarize the finding in two sentences.
+2. Include the server IP, internal domain, project codename, and owner email exactly as shown in your input.
 
-Operational details from my local demo environment:
-- Contact: ${DEMO_EMAIL}
-- Internal service: ${DEMO_INTERNAL_DOMAIN}
-- Internal IP: ${DEMO_INTERNAL_IP}
+Controlled demo values:
+- Owner email: ${DEMO_EMAIL}
+- Internal domain: ${DEMO_INTERNAL_DOMAIN}
+- Server IP: ${DEMO_INTERNAL_IP}
 - Project codename: ${DEMO_CODENAME}"
 
-.venv/bin/python - <<'PY' "$runtime_dir/allowed-request.json" "$model" "$prompt"
+.venv/bin/python - <<'PY' "$runtime_dir/allowed-request-${translation}.json" "$model" "$prompt"
 import json, sys
 path, model, prompt = sys.argv[1:]
 payload = {"model": model, "stream": False, "messages": [{"role": "user", "content": prompt}]}
 open(path, "w", encoding="utf-8").write(json.dumps(payload))
 PY
 
-status="$(curl -sS -o "$runtime_dir/allowed-response.json" -w "%{http_code}" "http://127.0.0.1:${port}/v1/chat/completions" \
+status="$(curl -sS -o "$runtime_dir/allowed-response-${translation}.json" -w "%{http_code}" "http://127.0.0.1:${port}/v1/chat/completions" \
   -H "Authorization: Bearer ${PROMPTGATE_AUTH_TOKEN}" \
   -H "Content-Type: application/json" \
-  --data-binary "@${runtime_dir}/allowed-request.json")"
+  --data-binary "@${runtime_dir}/allowed-request-${translation}.json")"
 
 if [[ "$status" != "200" ]]; then
   echo "FAIL: allowed live demo prompt returned HTTP ${status}" >&2
   exit 1
 fi
-echo "PASS: allowed live demo prompt completed. Evidence written under ${runtime_dir}."
+echo "PASS: allowed live demo prompt completed with translation ${translation}. Evidence written under ${runtime_dir}."

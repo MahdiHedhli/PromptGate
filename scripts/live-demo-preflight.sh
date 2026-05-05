@@ -3,8 +3,8 @@ set -euo pipefail
 
 branch="$(git branch --show-current 2>/dev/null || echo unknown)"
 echo "Branch: ${branch}"
-if [[ "$branch" != "feature/live-desktop-evidence" ]]; then
-  echo "WARN: expected feature/live-desktop-evidence for final desktop demo work"
+if [[ "$branch" != "main" && "$branch" != "feature/live-desktop-evidence" && "$branch" != "feature/response-token-translation-demo" ]]; then
+  echo "WARN: unexpected branch for final desktop demo work"
 fi
 
 echo "Working tree:"

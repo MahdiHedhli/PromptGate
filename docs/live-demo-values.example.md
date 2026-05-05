@@ -18,8 +18,10 @@ PROVIDER_MODEL="gpt-4o-mini"
 PROMPTGATE_PROVIDER_MODE=upstream
 PROMPTGATE_UPSTREAM_BASE_URL="https://api.provider.example/v1"
 PROMPTGATE_UPSTREAM_API_KEY="owner-supplied-provider-key"
-# Models exposed to desktop apps. PromptGate rewrites these to PROVIDER_MODEL upstream.
+# Models exposed to desktop apps. PromptGate automatically adds promptgate-live-translate
+# when promptgate-live is present, and rewrites both aliases to PROVIDER_MODEL upstream.
 PROMPTGATE_MODEL_LIST="promptgate-live,gpt-4o-mini"
+PROMPTGATE_RESPONSE_TOKEN_TRANSLATION=false
 
 # Owner-controlled demo values.
 DEMO_EMAIL="demo-alias@example.com"

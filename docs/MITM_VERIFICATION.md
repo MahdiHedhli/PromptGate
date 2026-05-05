@@ -81,8 +81,9 @@ Never paste real provider keys into docs, reports, screenshots, or GitHub issues
 6. Click the upstream provider request in mitmweb.
 7. Verify the request body contains placeholders like `[PRIVATE_EMAIL_<random>]`, `[IP_ADDRESS_<random>]`, and `[CODENAME_<random>]`.
 8. Verify the request body does not contain the raw demo values.
-9. Send the blocked canary-secret prompt.
-10. Verify no upstream provider request is created for the blocked prompt.
+9. Repeat with `promptgate-live` and `promptgate-live-translate` if demonstrating response token translation. Both upstream requests must still contain placeholders and no raw values.
+10. Send the blocked canary-secret prompt.
+11. Verify no upstream provider request is created for the blocked prompt.
 
 ### Safety Notes
 

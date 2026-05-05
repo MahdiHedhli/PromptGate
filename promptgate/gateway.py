@@ -21,6 +21,7 @@ class GatewayResult:
     blocked_categories: list[str]
     latency_ms: float
     timings: dict[str, float]
+    conversation_id: str
     streaming_rejected: bool = False
 
 
@@ -62,7 +63,7 @@ def process_payload(payload: dict, policy: Policy, vault: TokenVault | None = No
     timings = {key: round(value, 3) for key, value in timings.items()}
     event = {"findings": len(audit), "blocked_categories": sorted(set(blocked)), "latency_ms": round(latency, 2)}
     logger.info("promptgate_audit %s", event)
-    return GatewayResult(not blocked or policy.mode != "enforce", updated, audit, sorted(set(blocked)), latency, timings)
+    return GatewayResult(not blocked or policy.mode != "enforce", updated, audit, sorted(set(blocked)), latency, timings, conversation_id)
 
 
 def _privacy_filter_provider(config: str | bool | dict | None) -> privacy_filter.PrivacyFilterProvider | None:

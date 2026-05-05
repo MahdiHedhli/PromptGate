@@ -58,8 +58,9 @@ def test_models_endpoint_is_openai_compatible_and_sanitized(monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     assert payload["object"] == "list"
-    assert [model["id"] for model in payload["data"]] == ["promptgate-live", "gpt-demo"]
+    assert [model["id"] for model in payload["data"]] == ["promptgate-live", "promptgate-live-translate", "gpt-demo"]
     assert "upstream-secret" not in response.text
+    assert "promptgate-live-translate" in response.text
 
 
 def test_unversioned_models_and_chat_completion_alias(monkeypatch):
@@ -188,3 +189,142 @@ def test_upstream_base_url_accepts_versioned_or_root_base():
 
     assert root_url == "https://api.openai.com/v1/chat/completions"
     assert versioned_url == "https://api.openai.com/v1/chat/completions"
+
+
+def test_promptgate_live_does_not_translate_response_tokens(monkeypatch):
+    captured = {}
+
+    async def local_fake_upstream(endpoint, payload, base_url, api_key, http_proxy="", ca_bundle=""):
+        captured["payload"] = payload
+        token = payload["messages"][0]["content"].split("IP ")[1]
+        return {"choices": [{"message": {"role": "assistant", "content": f"IP {token}"}}]}
+
+    monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "upstream")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_BASE_URL", "http://127.0.0.1:9999")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_MODEL", "gpt-real")
+    monkeypatch.setenv("PROMPTGATE_RESPONSE_TOKEN_TRANSLATION", "true")
+    monkeypatch.setattr("promptgate.server.forward", local_fake_upstream)
+
+    response = TestClient(app).post(
+        "/v1/chat/completions",
+        json={"model": "promptgate-live", "session_id": "no-translate", "messages": [{"role": "user", "content": "IP 10.10.100.110"}]},
+        headers={"Authorization": "Bearer local_promptgate_key"},
+    )
+
+    assert response.status_code == 200
+    assert "[IP_ADDRESS_" in response.text
+    assert "10.10.100.110" not in response.text
+    assert "10.10.100.110" not in str(captured["payload"])
+    assert captured["payload"]["model"] == "gpt-real"
+
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")
+    monkeypatch.delenv("PROMPTGATE_RESPONSE_TOKEN_TRANSLATION", raising=False)
+
+
+def test_promptgate_live_translate_restores_response_tokens(monkeypatch, caplog):
+    captured = {}
+
+    async def local_fake_upstream(endpoint, payload, base_url, api_key, http_proxy="", ca_bundle=""):
+        captured["payload"] = payload
+        token = payload["messages"][0]["content"].split("IP ")[1]
+        return {"choices": [{"message": {"role": "assistant", "content": f"IP {token}"}}]}
+
+    monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "upstream")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_BASE_URL", "http://127.0.0.1:9999")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_MODEL", "gpt-real")
+    monkeypatch.setattr("promptgate.server.forward", local_fake_upstream)
+    caplog.set_level("INFO", logger="promptgate")
+
+    response = TestClient(app).post(
+        "/v1/chat/completions",
+        json={"model": "promptgate-live-translate", "session_id": "translate", "messages": [{"role": "user", "content": "IP 10.10.100.111"}]},
+        headers={"Authorization": "Bearer local_promptgate_key"},
+    )
+
+    assert response.status_code == 200
+    assert "10.10.100.111" in response.text
+    assert "[IP_ADDRESS_" not in response.text
+    assert "10.10.100.111" not in str(captured["payload"])
+    assert "10.10.100.111" not in caplog.text
+    assert captured["payload"]["model"] == "gpt-real"
+
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")
+
+
+def test_streaming_response_translation_handles_split_token(monkeypatch):
+    async def local_fake_upstream_stream(endpoint, payload, base_url, api_key, http_proxy="", ca_bundle=""):
+        token = payload["messages"][0]["content"].split("IP ")[1]
+        midpoint = len(token) // 2
+        yield f'data: {{"choices":[{{"delta":{{"content":"IP {token[:midpoint]}'.encode("utf-8")
+        yield f'{token[midpoint:]}"}}}}]}}\n\n'.encode("utf-8")
+        yield b"data: [DONE]\n\n"
+
+    monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "upstream")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_BASE_URL", "http://127.0.0.1:9999")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setattr("promptgate.server.forward_stream", local_fake_upstream_stream)
+
+    response = TestClient(app).post(
+        "/v1/chat/completions",
+        json={"model": "promptgate-live-translate", "stream": True, "session_id": "split", "messages": [{"role": "user", "content": "IP 10.10.100.112"}]},
+        headers={"Authorization": "Bearer local_promptgate_key"},
+    )
+
+    assert response.status_code == 200
+    assert "10.10.100.112" in response.text
+    assert "[IP_ADDRESS_" not in response.text
+    assert "data: [DONE]" in response.text
+
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")
+
+
+def test_unknown_response_token_is_not_restored(monkeypatch):
+    async def local_fake_upstream(endpoint, payload, base_url, api_key, http_proxy="", ca_bundle=""):
+        return {"choices": [{"message": {"role": "assistant", "content": "IP [IP_ADDRESS_deadbeefdeadbeef]"}}]}
+
+    monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "upstream")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_BASE_URL", "http://127.0.0.1:9999")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setattr("promptgate.server.forward", local_fake_upstream)
+
+    response = TestClient(app).post(
+        "/v1/chat/completions",
+        json={"model": "promptgate-live-translate", "session_id": "unknown", "messages": [{"role": "user", "content": "hello"}]},
+        headers={"Authorization": "Bearer local_promptgate_key"},
+    )
+
+    assert response.status_code == 200
+    assert "[IP_ADDRESS_deadbeefdeadbeef]" in response.text
+
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")
+
+
+def test_global_response_translation_env_restores_for_non_demo_model(monkeypatch):
+    async def local_fake_upstream(endpoint, payload, base_url, api_key, http_proxy="", ca_bundle=""):
+        token = payload["messages"][0]["content"].split("IP ")[1]
+        return {"choices": [{"message": {"role": "assistant", "content": f"IP {token}"}}]}
+
+    monkeypatch.setenv("PROMPTGATE_AUTH_TOKEN", "local_promptgate_key")
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "upstream")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_BASE_URL", "http://127.0.0.1:9999")
+    monkeypatch.setenv("PROMPTGATE_UPSTREAM_API_KEY", "upstream-secret")
+    monkeypatch.setenv("PROMPTGATE_RESPONSE_TOKEN_TRANSLATION", "true")
+    monkeypatch.setattr("promptgate.server.forward", local_fake_upstream)
+
+    response = TestClient(app).post(
+        "/v1/chat/completions",
+        json={"model": "gpt-demo", "session_id": "global-translate", "messages": [{"role": "user", "content": "IP 10.10.100.113"}]},
+        headers={"Authorization": "Bearer local_promptgate_key"},
+    )
+
+    assert response.status_code == 200
+    assert "10.10.100.113" in response.text
+
+    monkeypatch.setenv("PROMPTGATE_PROVIDER_MODE", "mock")
+    monkeypatch.delenv("PROMPTGATE_RESPONSE_TOKEN_TRANSLATION", raising=False)

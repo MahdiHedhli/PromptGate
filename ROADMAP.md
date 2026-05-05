@@ -26,3 +26,4 @@
 ## Days 11-14
 
 - Polish demo, blog evidence, and MVP release checklist.
+- Add response token translation demo toggle so `promptgate-live` shows placeholders and `promptgate-live-translate` restores known scoped tokens locally while MITM upstream traffic remains tokenized.

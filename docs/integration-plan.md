@@ -15,7 +15,7 @@ PromptGate is the canonical repository. PromptGuard is a donor spike used for se
 
 - PromptGuard wholesale architecture.
 - Production LiteLLM CustomLogger hook.
-- Response token restoration.
+- Default-on or automatic response token restoration. PromptGate now has explicit response token translation for demos and controlled runtime use.
 - Real model downloads for OpenAI Privacy Filter.
 - Presidio runtime dependency.
 - LLM judge path.
@@ -25,4 +25,4 @@ PromptGate is the canonical repository. PromptGuard is a donor spike used for se
 
 Keep PromptGate if local clone-and-run quickstart, fake egress proof, fake upstream, LiteLLM route shape, MITM fake-upstream proof, auth, policy validation, and leak assertions remain green.
 
-Revisit PromptGuard-only ideas only if the owner chooses a LiteLLM-first deployment or response restoration becomes a hard requirement.
+Revisit PromptGuard-only ideas only if the owner chooses a LiteLLM-first deployment or broader response token translation becomes a hard requirement.

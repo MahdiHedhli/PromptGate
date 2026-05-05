@@ -27,7 +27,7 @@ Doctor checks policy validity, auth mode, provider mode, upstream config, raw pr
 
 ## Streaming
 
-PromptGate 0.1.0 supports OpenAI-compatible `stream=true` for `/v1/chat/completions`. Requests are authenticated, scanned, policy-evaluated, and rewritten before the upstream stream is opened. Blocked requests return a local error and do not create an upstream request. The MVP does not restore tokenized values inside streamed provider responses.
+PromptGate 0.1.0 supports OpenAI-compatible `stream=true` for `/v1/chat/completions`. Requests are authenticated, scanned, policy-evaluated, and rewritten before the upstream stream is opened. Blocked requests return a local error and do not create an upstream request. Response token translation is disabled by default, but can be enabled explicitly with `PROMPTGATE_RESPONSE_TOKEN_TRANSLATION=true` or the `promptgate-live-translate` demo model alias.
 
 ## Tokenization
 
@@ -42,6 +42,8 @@ tokenization:
 ```
 
 Token mappings are in-memory only, scoped by conversation/request ID, and evicted by TTL and LRU limits. They are not written to status, logs, reports, or audit events. `deterministic` mode is available for reproducible demos and tests, but it is opt-in.
+
+When response token translation is enabled, PromptGate translates only known scoped tokens in the provider response after upstream receipt. It does not change upstream requests, and unknown or cross-scope tokens are not restored.
 
 ## Audit-Only Rollout
 

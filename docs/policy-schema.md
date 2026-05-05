@@ -70,6 +70,8 @@ tokenization:
 
 `deterministic` mode remains available for demos and reproducible tests, but it is opt-in because sequential tokens are easier to guess than scoped random tokens.
 
+`restore_responses` is the policy-level response token translation toggle. It is disabled by default. Demo callers can also select `promptgate-live-translate`, which enables response token translation for that request while leaving upstream egress tokenized. The environment variable `PROMPTGATE_RESPONSE_TOKEN_TRANSLATION=true` enables the same behavior globally for non-demo callers.
+
 Rules:
 
 ```yaml

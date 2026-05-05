@@ -48,7 +48,7 @@ Tokenization preserves workflow context but creates a sensitive in-memory ledger
 
 ## Prompt-Injection Risk Against Restoration
 
-PromptGate does not restore response tokens by default. Unknown tokens are never restored, and scoped tokens from conversation A do not restore in conversation B. If response restoration is added later, it must preserve these properties and treat LLM-emitted tokens as untrusted text.
+PromptGate does not translate response tokens by default. When explicitly enabled for the demo or by configuration, response token translation happens only after provider receipt and only for known scoped tokens. Unknown tokens are never restored, scoped tokens from conversation A do not restore in conversation B, and LLM-emitted tokens remain untrusted text.
 
 ## Coverage Boundary
 

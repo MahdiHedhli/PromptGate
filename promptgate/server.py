@@ -14,6 +14,7 @@ from promptgate.policy import load_policy
 from promptgate.providers import mock
 from promptgate.providers.upstream import UpstreamConfigError, forward, forward_stream
 from promptgate.redact import TokenVault
+from promptgate.response_translate import translate_json_response, translate_sse_stream
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
@@ -69,6 +70,7 @@ async def status() -> dict:
 
 
 def _models_payload() -> dict:
+    models = _demo_model_aliases(current_settings().model_list)
     return {
         "object": "list",
         "data": [
@@ -78,7 +80,7 @@ def _models_payload() -> dict:
                 "created": 0,
                 "owned_by": "promptgate-local",
             }
-            for model in current_settings().model_list
+            for model in models
         ],
     }
 
@@ -116,16 +118,24 @@ async def chat_completions_unversioned(payload: dict, authorization: str | None 
 
 async def _chat_completions_impl(payload: dict, authorization: str | None) -> JSONResponse | StreamingResponse:
     _authorize(authorization)
-    result = process_payload(payload, _policy(), vault)
+    policy = _policy()
+    settings = current_settings()
+    result = process_payload(payload, policy, vault)
     if not result.allowed:
         return JSONResponse(status_code=400, content={"error": {"message": "PromptGate blocked sensitive content", "categories": result.blocked_categories}})
+    translate_response = _response_translation_enabled(payload, settings.response_token_translation or policy.tokenization.restore_responses)
     if payload.get("stream") is True:
+        stream = _send_upstream_stream("/v1/chat/completions", result.payload)
+        if translate_response:
+            stream = translate_sse_stream(stream, vault, result.conversation_id)
         return StreamingResponse(
-            _send_upstream_stream("/v1/chat/completions", result.payload),
+            stream,
             media_type="text/event-stream",
             headers={"x-promptgate-findings": str(len(result.audit))},
         )
     response = await _send_upstream("/v1/chat/completions", result.payload, "chat")
+    if translate_response:
+        response = translate_json_response(response, vault, result.conversation_id)
     return JSONResponse(content=response, headers={"x-promptgate-findings": str(len(result.audit))})
 
 
@@ -236,6 +246,23 @@ def _upstream_payload(payload: dict, upstream_model: str) -> dict:
     rewritten = dict(payload)
     rewritten["model"] = upstream_model
     return rewritten
+
+
+def _demo_model_aliases(models: tuple[str, ...]) -> tuple[str, ...]:
+    result = list(models)
+    if "promptgate-live" in result and "promptgate-live-translate" not in result:
+        insert_at = result.index("promptgate-live") + 1
+        result.insert(insert_at, "promptgate-live-translate")
+    return tuple(result)
+
+
+def _response_translation_enabled(payload: dict, default_enabled: bool) -> bool:
+    model = payload.get("model")
+    if model == "promptgate-live-translate":
+        return True
+    if model == "promptgate-live":
+        return False
+    return default_enabled
 
 
 def _safe_upstream_error(exc: httpx.HTTPError) -> str:

@@ -13,7 +13,8 @@
 | LiteLLM route shape | Green | `./scripts/test-litellm-route.sh` | fake upstream capture | Production LiteLLM deployment not claimed |
 | Desktop app handshake | Green | pytest `/v1/models`, `/models`, `/chat/completions` tests | tests/test_auth_and_upstream.py | Owner configures Cherry Studio GUI |
 | Live desktop demo tooling | Green | pytest live-demo script tests | scripts/live-demo-*.sh | Owner supplies local credentials and demo values |
-| Streaming behavior | Green | pytest streaming support test, `./scripts/test-streaming-support.sh` | tests/test_gateway_egress.py | Response token restoration remains out of scope |
+| Streaming behavior | Green | pytest streaming support test, `./scripts/test-streaming-support.sh` | tests/test_gateway_egress.py | Response token translation is explicit and off by default |
+| Response token translation | Green | pytest translation tests | tests/test_auth_and_upstream.py | Owner verifies GUI side-by-side demo |
 | MITM fake-upstream verification | Green | `./scripts/test-mitm-fake-upstream.sh` | local/runtime/mitm/ ignored captures | Owner can run visual MITM next |
 | Real-provider MITM | Yellow | docs/MITM_VERIFICATION.md | owner local mitmproxy | Requires owner credentials |
 | Benchmarks | Green | `./scripts/benchmark-local.py` | docs/reports/benchmarks/latest.md | Treat as synthetic local evidence |

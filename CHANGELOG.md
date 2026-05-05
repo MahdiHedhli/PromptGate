@@ -5,3 +5,4 @@
 - Created PromptGate MVP skeleton.
 - Added policy-as-code, industry profiles, scanner pipeline, deterministic token vault, mock provider, FastAPI gateway, scripts, tests, and docs.
 - Added Day 2-4 hardening: fail-closed policy validation, expanded payload extraction, safer mapped normalization, auth-required defaults, explicit upstream forwarding, synthetic benchmarks, LiteLLM routing docs, and expanded tests.
+- Added live desktop demo hardening for Cherry Studio, safe OpenAI-compatible streaming, MITM proof tooling, upstream model mapping, and explicit response token translation demo aliases.

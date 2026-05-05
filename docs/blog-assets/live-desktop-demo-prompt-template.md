@@ -5,25 +5,30 @@ Use these prompts in Cherry Studio or the selected desktop LLM app after configu
 ## Allowed Redaction/Tokenization Prompt
 
 ```text
-I'm reviewing this PromptGate policy and threat model excerpt before publishing the MVP.
+I am testing a local AI DLP gateway called PromptGate.
+
+Use the exact values I provide below when summarizing. Do not invent replacements.
 
 Context from the real repo:
 ${DEMO_PROMPT_CONTEXT}
 
-Please summarize the risk and suggest what to test next.
+Task:
+1. Summarize the finding in two sentences.
+2. Include the server IP, internal domain, project codename, and owner email exactly as shown in your input.
 
-Operational details from my local demo environment:
-- Contact: ${DEMO_EMAIL}
-- Internal service: ${DEMO_INTERNAL_DOMAIN}
-- Internal IP: ${DEMO_INTERNAL_IP}
+Controlled demo values:
+- Owner email: ${DEMO_EMAIL}
+- Internal domain: ${DEMO_INTERNAL_DOMAIN}
+- Server IP: ${DEMO_INTERNAL_IP}
 - Project codename: ${DEMO_CODENAME}
 ```
 
 Expected outcome:
 
-- Desktop app receives a normal model response.
-- MITM upstream request body contains placeholders for the email, domain, IP, and codename.
-- MITM upstream request body does not contain the raw demo values.
+- With `promptgate-live`, the desktop response contains placeholders.
+- With `promptgate-live-translate`, the desktop response restores the local controlled values.
+- In both modes, MITM upstream request body contains placeholders for the email, domain, IP, and codename.
+- In both modes, MITM upstream request body does not contain the raw demo values.
 
 ## Blocked Secret Prompt
 
